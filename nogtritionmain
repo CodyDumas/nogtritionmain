@@ -1,0 +1,2864 @@
+<!DOCTYPE html>
+<html lang="en">
+<head>
+<meta charset="UTF-8">
+<meta name="viewport" content="width=device-width, initial-scale=1.0, maximum-scale=1.0, user-scalable=no">
+<meta name="apple-mobile-web-app-capable" content="yes">
+<meta name="apple-mobile-web-app-status-bar-style" content="black-translucent">
+<meta name="theme-color" content="#000000">
+<title>NOGTRITION</title>
+<link rel="preconnect" href="https://fonts.googleapis.com">
+<link href="https://fonts.googleapis.com/css2?family=Bebas+Neue&family=DM+Sans:wght@300;400;500;600&display=swap" rel="stylesheet">
+<style>
+  :root {
+    --bg: #000000;
+    --surface: #0d0d0d;
+    --surface2: #1a1a1a;
+    --border: #1e2a3a;
+    --accent: #3b9eff;
+    --accent2: #ff4747;
+    --text: #ffffff;
+    --muted: #6b7a8d;
+    --green: #3b9eff;
+    --blue: #7dc4ff;
+    --orange: #a0cfff;
+    --radius: 14px;
+    --tab-h: 72px;
+    --header-h: 58px;
+  }
+  * { box-sizing: border-box; margin: 0; padding: 0; -webkit-tap-highlight-color: transparent; }
+  html, body { height: 100%; overflow: hidden; background: var(--bg); color: var(--text); font-family: 'DM Sans', sans-serif; }
+  
+  /* LAYOUT */
+  #app { display: flex; flex-direction: column; height: 100vh; height: 100dvh; }
+  #header { height: var(--header-h); background: var(--bg); border-bottom: 1px solid var(--border); display: flex; align-items: center; padding: 0 16px; gap: 12px; position: relative; z-index: 10; flex-shrink: 0; }
+  #header h1 { font-family: 'Bebas Neue', sans-serif; font-size: 28px; letter-spacing: 2px; color: var(--accent); flex: 1; }
+  #header .date { font-size: 12px; color: var(--muted); }
+  .sync-btn { background: none; border: 1px solid var(--border); color: var(--muted); font-size: 11px; padding: 5px 10px; border-radius: 8px; cursor: pointer; font-family: 'DM Sans', sans-serif; }
+  .sync-btn:active { background: var(--surface2); }
+
+  #pages { flex: 1; overflow: hidden; position: relative; }
+  .page { position: absolute; inset: 0; overflow-y: auto; overflow-x: hidden; padding: 16px 16px calc(var(--tab-h) + 16px); display: none; -webkit-overflow-scrolling: touch; }
+  .page.active { display: block; }
+  
+  #tabs { height: var(--tab-h); background: var(--surface); border-top: 1px solid var(--border); display: flex; align-items: stretch; flex-shrink: 0; }
+  .tab { flex: 1; display: flex; flex-direction: column; align-items: center; justify-content: center; gap: 4px; cursor: pointer; background: none; border: none; color: var(--muted); font-family: 'DM Sans', sans-serif; font-size: 10px; transition: color 0.15s; padding-bottom: 6px; }
+
+  /* SUB-TABS */
+  .sub-tab-bar { display: flex; background: var(--surface2); border-radius: 12px; padding: 3px; margin-bottom: 18px; gap: 3px; }
+  .sub-tab { flex: 1; padding: 9px; border-radius: 9px; border: none; background: transparent; color: var(--muted); font-family: 'DM Sans', sans-serif; font-size: 13px; font-weight: 500; cursor: pointer; transition: all 0.15s; }
+  .sub-tab.active { background: var(--accent); color: #ffffff; font-weight: 600; }
+  .tab svg { width: 22px; height: 22px; stroke-width: 1.8; }
+  .tab.active { color: var(--accent); }
+
+  /* CARDS */
+  .card { background: var(--surface); border: 1px solid var(--border); border-radius: var(--radius); padding: 16px; margin-bottom: 12px; }
+  .card-title { font-size: 11px; text-transform: uppercase; letter-spacing: 1px; color: var(--muted); margin-bottom: 12px; }
+  
+  /* STATS ROW */
+  .stats-row { display: grid; grid-template-columns: 1fr 1fr; gap: 10px; margin-bottom: 12px; }
+  .stat-box { background: var(--surface); border: 1px solid var(--border); border-radius: var(--radius); padding: 14px; text-align: center; }
+  .stat-val { font-family: 'Bebas Neue', sans-serif; font-size: 32px; color: var(--accent); line-height: 1; }
+  .stat-label { font-size: 10px; color: var(--muted); margin-top: 2px; text-transform: uppercase; letter-spacing: 0.5px; }
+
+  /* INPUTS */
+  input, select, textarea { background: var(--surface2); border: 1px solid var(--border); color: var(--text); border-radius: 10px; padding: 11px 14px; font-family: 'DM Sans', sans-serif; font-size: 15px; width: 100%; outline: none; }
+  input:focus, select:focus { border-color: var(--accent); }
+  select option { background: var(--surface2); }
+  label { font-size: 12px; color: var(--muted); display: block; margin-bottom: 6px; margin-top: 12px; }
+
+  /* BUTTONS */
+  .btn { display: block; width: 100%; padding: 14px; border-radius: 12px; border: none; font-family: 'DM Sans', sans-serif; font-size: 15px; font-weight: 600; cursor: pointer; text-align: center; transition: transform 0.1s, opacity 0.1s; }
+  .btn:active { transform: scale(0.97); }
+  .btn-primary { background: var(--accent); color: #ffffff; }
+  .btn-secondary { background: var(--surface2); color: var(--text); border: 1px solid var(--border); }
+  .btn-danger { background: transparent; color: var(--accent2); border: 1px solid var(--accent2); }
+  .btn-sm { padding: 8px 14px; font-size: 13px; width: auto; display: inline-block; }
+
+  /* SECTION TITLE */
+  .section-title { font-family: 'Bebas Neue', sans-serif; font-size: 22px; letter-spacing: 1px; margin-bottom: 14px; color: var(--text); }
+
+  /* WORKOUT */
+  .exercise-card { background: var(--surface); border: 1px solid var(--border); border-radius: var(--radius); margin-bottom: 10px; overflow: hidden; }
+  .exercise-header { display: flex; align-items: center; justify-content: space-between; padding: 14px 16px; cursor: pointer; }
+  .exercise-name { font-weight: 500; font-size: 16px; }
+  .exercise-sets { font-size: 12px; color: var(--muted); }
+  .sets-table { width: 100%; border-collapse: collapse; }
+  .sets-table th { font-size: 10px; text-transform: uppercase; letter-spacing: 0.5px; color: var(--muted); padding: 8px 12px; text-align: left; border-top: 1px solid var(--border); }
+  .sets-table td { padding: 9px 12px; font-size: 14px; border-top: 1px solid var(--border); }
+  .sets-table tr:last-child td { border-bottom: none; }
+  .set-done { color: var(--green); }
+  .del-btn { background: none; border: none; color: var(--muted); cursor: pointer; font-size: 16px; padding: 4px 8px; }
+
+  /* MACROS BAR */
+  .macro-bar { height: 8px; border-radius: 4px; background: var(--surface2); overflow: hidden; margin: 8px 0 4px; }
+  .macro-fill { height: 100%; border-radius: 4px; transition: width 0.4s; }
+  .macro-row { display: flex; justify-content: space-between; margin-bottom: 10px; }
+  .macro-item { text-align: center; flex: 1; }
+  .macro-val { font-weight: 600; font-size: 16px; }
+  .macro-name { font-size: 10px; color: var(--muted); }
+
+  /* FOOD LOG */
+  .food-item { display: flex; align-items: center; justify-content: space-between; padding: 12px 0; border-bottom: 1px solid var(--border); }
+  .food-item:last-child { border-bottom: none; }
+  .food-name { font-size: 14px; font-weight: 500; }
+  .food-cals { font-family: 'Bebas Neue', sans-serif; font-size: 20px; color: var(--accent); }
+  .food-detail { font-size: 11px; color: var(--muted); margin-top: 1px; }
+
+  /* WEIGHT CHART */
+  .weight-chart { width: 100%; height: 140px; }
+
+  /* REST TIMER */
+  #rest-overlay { position: fixed; inset: 0; background: rgba(0,0,0,0.95); z-index: 100; display: flex; flex-direction: column; align-items: center; justify-content: center; gap: 16px; display: none; }
+  #rest-overlay.show { display: flex; }
+  .timer-ring { position: relative; width: 200px; height: 200px; }
+  .timer-ring svg { position: absolute; inset: 0; transform: rotate(-90deg); }
+  .timer-ring-center { position: absolute; inset: 0; display: flex; align-items: center; justify-content: center; }
+  .timer-time { font-family: 'Bebas Neue', sans-serif; font-size: 64px; color: var(--accent); letter-spacing: 2px; }
+  .timer-label { font-size: 12px; color: var(--muted); text-transform: uppercase; letter-spacing: 1px; }
+
+  /* PROFILE / WEIGHT */
+  .weight-entry { display: flex; justify-content: space-between; align-items: center; padding: 10px 0; border-bottom: 1px solid var(--border); }
+  .weight-date { font-size: 12px; color: var(--muted); }
+  .weight-val { font-family: 'Bebas Neue', sans-serif; font-size: 24px; color: var(--blue); }
+
+  /* MODAL */
+  .modal-overlay { position: fixed; inset: 0; background: rgba(0,0,0,0.85); z-index: 50; display: none; align-items: flex-end; }
+  .modal-overlay.show { display: flex; }
+  .modal { background: var(--surface); border-radius: 20px 20px 0 0; padding: 20px; width: 100%; max-height: 85vh; overflow-y: auto; border-top: 1px solid var(--border); }
+  .modal-title { font-family: 'Bebas Neue', sans-serif; font-size: 24px; margin-bottom: 16px; }
+  .modal-close { float: right; background: var(--surface2); border: none; color: var(--muted); font-size: 18px; width: 30px; height: 30px; border-radius: 50%; cursor: pointer; }
+
+  /* MICRO TABLE */
+  .micro-table { width: 100%; font-size: 13px; }
+  .micro-table tr td:first-child { color: var(--muted); padding: 5px 0; }
+  .micro-table tr td:last-child { text-align: right; font-weight: 500; }
+
+  /* BARCODE */
+  #barcode-area { background: var(--surface2); border-radius: var(--radius); padding: 20px; text-align: center; border: 1.5px dashed var(--border); }
+  .scan-icon { font-size: 48px; margin-bottom: 8px; }
+
+  /* SETTINGS */
+  .setting-row { display: flex; justify-content: space-between; align-items: center; padding: 14px 0; border-bottom: 1px solid var(--border); }
+  .setting-label { font-size: 14px; }
+  .setting-sub { font-size: 12px; color: var(--muted); margin-top: 2px; }
+  .setting-val { font-size: 14px; color: var(--accent); font-weight: 500; }
+  
+  /* TOGGLE */
+  .toggle { position: relative; width: 46px; height: 26px; }
+  .toggle input { opacity: 0; width: 0; height: 0; }
+  .toggle-slider { position: absolute; cursor: pointer; inset: 0; background: var(--surface2); border-radius: 13px; transition: 0.2s; border: 1px solid var(--border); }
+  .toggle input:checked + .toggle-slider { background: var(--accent); border-color: var(--accent); }
+  .toggle-slider:before { content: ''; position: absolute; height: 18px; width: 18px; left: 3px; bottom: 3px; background: white; border-radius: 50%; transition: 0.2s; }
+  .toggle input:checked + .toggle-slider:before { transform: translateX(20px); }
+
+  /* CHIPS */
+  .chip-row { display: flex; flex-wrap: wrap; gap: 8px; margin: 10px 0; }
+  .chip { padding: 6px 14px; border-radius: 20px; border: 1px solid var(--border); font-size: 13px; cursor: pointer; background: var(--surface2); color: var(--text); }
+  .chip.active { background: var(--accent); color: #ffffff; border-color: var(--accent); font-weight: 600; }
+
+  /* TOAST */
+  #toast { position: fixed; bottom: calc(var(--tab-h) + 16px); left: 50%; transform: translateX(-50%) translateY(20px); background: var(--surface); border: 1px solid var(--border); border-radius: 10px; padding: 10px 18px; font-size: 13px; z-index: 200; opacity: 0; transition: opacity 0.2s, transform 0.2s; pointer-events: none; white-space: nowrap; }
+  #toast.show { opacity: 1; transform: translateX(-50%) translateY(0); }
+  #toast.success { border-color: var(--green); color: var(--green); }
+  #toast.error { border-color: var(--accent2); color: var(--accent2); }
+
+  /* PROGRESS RING */
+  .calorie-ring-wrap { display: flex; align-items: center; justify-content: center; padding: 10px 0 4px; }
+  .calorie-ring { position: relative; width: 160px; height: 160px; }
+  .calorie-ring svg { transform: rotate(-90deg); }
+  .calorie-ring-center { position: absolute; inset: 0; display: flex; flex-direction: column; align-items: center; justify-content: center; }
+  .cal-remaining { font-family: 'Bebas Neue', sans-serif; font-size: 40px; line-height: 1; }
+  .cal-remaining-label { font-size: 10px; color: var(--muted); text-transform: uppercase; letter-spacing: 0.5px; }
+
+  /* MEAL SECTIONS */
+  .meal-section { margin-bottom: 4px; }
+  .meal-header { display: flex; justify-content: space-between; align-items: center; padding: 10px 0; cursor: pointer; }
+  .meal-name { font-weight: 500; font-size: 14px; }
+  .meal-kcal { font-size: 13px; color: var(--muted); }
+  .meal-body { border-top: 1px solid var(--border); }
+
+  .tag { display: inline-block; padding: 2px 8px; border-radius: 6px; font-size: 10px; font-weight: 600; text-transform: uppercase; letter-spacing: 0.5px; margin-left: 6px; }
+  .tag-green { background: rgba(59,158,255,0.12); color: var(--accent); }
+  .tag-blue { background: rgba(125,196,255,0.12); color: var(--blue); }
+  .tag-orange { background: rgba(160,207,255,0.12); color: var(--orange); }
+  
+  .input-row { display: grid; grid-template-columns: 1fr 1fr; gap: 10px; }
+  .input-row-3 { display: grid; grid-template-columns: 1fr 1fr 1fr; gap: 8px; }
+  
+  .divider { height: 1px; background: var(--border); margin: 16px 0; }
+
+  /* scrollbar */
+  ::-webkit-scrollbar { width: 0px; }
+</style>
+</head>
+<body>
+
+<div id="app">
+  <div id="header">
+    <h1>NOGTRITION</h1>
+    <span class="date" id="header-date"></span>
+    <button class="sync-btn" onclick="syncToSheets()">⚡ Sync</button>
+  </div>
+
+  <div id="pages">
+    <!-- DASHBOARD -->
+    <div class="page active" id="page-dashboard">
+      <div class="section-title">Today's Overview</div>
+
+      <div class="calorie-ring-wrap">
+        <div class="calorie-ring">
+          <svg width="160" height="160" viewBox="0 0 160 160">
+            <circle cx="80" cy="80" r="68" fill="none" stroke="#1e1e1e" stroke-width="12"/>
+            <circle id="cal-ring" cx="80" cy="80" r="68" fill="none" stroke="#3b9eff" stroke-width="12" stroke-linecap="round"
+              stroke-dasharray="427" stroke-dashoffset="427" style="transition:stroke-dashoffset 0.6s"/>
+          </svg>
+          <div class="calorie-ring-center">
+            <div class="cal-remaining" id="cal-remaining-num">0</div>
+            <div class="cal-remaining-label">kcal left</div>
+          </div>
+        </div>
+      </div>
+
+      <div class="stats-row">
+        <div class="stat-box">
+          <div class="stat-val" id="dash-consumed">0</div>
+          <div class="stat-label">Consumed kcal</div>
+        </div>
+        <div class="stat-box">
+          <div class="stat-val" id="dash-goal">2500</div>
+          <div class="stat-label">Goal kcal</div>
+        </div>
+      </div>
+
+      <div class="card">
+        <div class="card-title">Macros</div>
+        <div class="macro-row">
+          <div class="macro-item">
+            <div class="macro-val" style="color:var(--blue)" id="dash-protein">0g</div>
+            <div class="macro-name">Protein</div>
+          </div>
+          <div class="macro-item">
+            <div class="macro-val" style="color:var(--orange)" id="dash-carbs">0g</div>
+            <div class="macro-name">Carbs</div>
+          </div>
+          <div class="macro-item">
+            <div class="macro-val" style="color:var(--accent)" id="dash-fat">0g</div>
+            <div class="macro-name">Fat</div>
+          </div>
+        </div>
+        <div class="macro-bar"><div class="macro-fill" id="bar-protein" style="background:var(--blue);width:0%"></div></div>
+        <div style="font-size:10px;color:var(--muted);text-align:right" id="bar-protein-label">0 / 180g</div>
+        <div class="macro-bar"><div class="macro-fill" id="bar-carbs" style="background:var(--orange);width:0%"></div></div>
+        <div style="font-size:10px;color:var(--muted);text-align:right" id="bar-carbs-label">0 / 250g</div>
+        <div class="macro-bar"><div class="macro-fill" id="bar-fat" style="background:var(--accent);width:0%"></div></div>
+        <div style="font-size:10px;color:var(--muted);text-align:right" id="bar-fat-label">0 / 70g</div>
+      </div>
+
+      <div class="card">
+        <div class="card-title">Today's Workout</div>
+        <div id="dash-workout-summary" style="color:var(--muted);font-size:14px">No workout logged today. Head to the Workout tab!</div>
+      </div>
+
+      <div class="card">
+        <div class="card-title">Weight Trend</div>
+        <canvas class="weight-chart" id="mini-weight-chart"></canvas>
+        <div style="text-align:center;font-size:11px;color:var(--muted);margin-top:4px">Last 14 days</div>
+      </div>
+    </div>
+
+    <!-- NUTRITION + RECIPES (combined) -->
+    <div class="page" id="page-nutrition">
+
+      <!-- Sub-tab bar -->
+      <div class="sub-tab-bar">
+        <button class="sub-tab active" id="sub-nut" onclick="switchSubTab('nut',this)">Nutrition</button>
+        <button class="sub-tab" id="sub-rec" onclick="switchSubTab('rec',this)">Recipe Book</button>
+      </div>
+
+      <!-- ── NUTRITION PANEL ── -->
+      <div id="panel-nut">
+        <div style="display:flex;align-items:center;justify-content:space-between;margin-bottom:14px">
+          <div class="section-title" style="margin:0">Nutrition</div>
+          <button class="btn btn-primary btn-sm" id="nut-add-btn" onclick="openAddFood()">+ Add Food</button>
+        </div>
+
+        <!-- Day of week selector -->
+        <div style="margin-bottom:14px">
+          <div id="nut-day-strip" style="display:flex;gap:6px;overflow-x:auto;padding-bottom:4px;-webkit-overflow-scrolling:touch;scrollbar-width:none"></div>
+          <div id="nut-selected-date" style="font-size:12px;color:var(--muted);margin-top:8px;text-align:center"></div>
+        </div>
+
+        <div class="stats-row">
+          <div class="stat-box">
+            <div class="stat-val" id="nut-consumed">0</div>
+            <div class="stat-label">Calories Consumed</div>
+          </div>
+          <div class="stat-box">
+            <div class="stat-val" style="color:var(--accent)" id="nut-remaining">2500</div>
+            <div class="stat-label">Calories Left</div>
+          </div>
+        </div>
+
+        <!-- Macros breakdown -->
+        <div class="card" style="padding:14px 16px">
+          <div class="card-title">Macros</div>
+          <div style="display:flex;justify-content:space-between;margin-bottom:12px">
+            <div style="text-align:center;flex:1">
+              <div style="font-family:'Bebas Neue',sans-serif;font-size:26px;color:#7dc4ff;line-height:1" id="nut-protein-val">0g</div>
+              <div style="font-size:10px;color:var(--muted);margin-top:2px">Protein</div>
+            </div>
+            <div style="text-align:center;flex:1">
+              <div style="font-family:'Bebas Neue',sans-serif;font-size:26px;color:#a0cfff;line-height:1" id="nut-carbs-val">0g</div>
+              <div style="font-size:10px;color:var(--muted);margin-top:2px">Carbs</div>
+            </div>
+            <div style="text-align:center;flex:1">
+              <div style="font-family:'Bebas Neue',sans-serif;font-size:26px;color:#ffffff;line-height:1" id="nut-fat-val">0g</div>
+              <div style="font-size:10px;color:var(--muted);margin-top:2px">Fat</div>
+            </div>
+          </div>
+          <div style="display:flex;align-items:center;gap:8px;margin-bottom:6px">
+            <div style="font-size:11px;color:#7dc4ff;width:46px">Protein</div>
+            <div style="flex:1;height:7px;border-radius:4px;background:var(--surface2);overflow:hidden">
+              <div id="nut-bar-protein" style="height:100%;border-radius:4px;background:#7dc4ff;width:0%;transition:width 0.4s"></div>
+            </div>
+            <div style="font-size:10px;color:var(--muted);min-width:56px;text-align:right" id="nut-bar-protein-lbl">0 / 180g</div>
+          </div>
+          <div style="display:flex;align-items:center;gap:8px;margin-bottom:6px">
+            <div style="font-size:11px;color:#a0cfff;width:46px">Carbs</div>
+            <div style="flex:1;height:7px;border-radius:4px;background:var(--surface2);overflow:hidden">
+              <div id="nut-bar-carbs" style="height:100%;border-radius:4px;background:#a0cfff;width:0%;transition:width 0.4s"></div>
+            </div>
+            <div style="font-size:10px;color:var(--muted);min-width:56px;text-align:right" id="nut-bar-carbs-lbl">0 / 250g</div>
+          </div>
+          <div style="display:flex;align-items:center;gap:8px">
+            <div style="font-size:11px;color:#ffffff;width:46px">Fat</div>
+            <div style="flex:1;height:7px;border-radius:4px;background:var(--surface2);overflow:hidden">
+              <div id="nut-bar-fat" style="height:100%;border-radius:4px;background:#ffffff;width:0%;transition:width 0.4s"></div>
+            </div>
+            <div style="font-size:10px;color:var(--muted);min-width:56px;text-align:right" id="nut-bar-fat-lbl">0 / 70g</div>
+          </div>
+        </div>
+
+        <div class="card" id="meals-card">
+          <div class="card-title" id="nut-log-title">Food Log</div>
+          <div id="food-log-list">
+            <div style="color:var(--muted);font-size:14px;padding:8px 0">No foods logged yet.</div>
+          </div>
+        </div>
+
+        <div class="card">
+          <div class="card-title">Micronutrients</div>
+          <table class="micro-table" id="micro-table">
+            <tr><td>Sodium</td><td id="mic-sodium">0 mg</td></tr>
+            <tr><td>Fiber</td><td id="mic-fiber">0 g</td></tr>
+            <tr><td>Sugar</td><td id="mic-sugar">0 g</td></tr>
+            <tr><td>Calcium</td><td id="mic-calcium">0 mg</td></tr>
+            <tr><td>Iron</td><td id="mic-iron">0 mg</td></tr>
+            <tr><td>Potassium</td><td id="mic-potassium">0 mg</td></tr>
+            <tr><td>Vitamin C</td><td id="mic-vitc">0 mg</td></tr>
+            <tr><td>Vitamin D</td><td id="mic-vitd">0 IU</td></tr>
+            <tr><td>Cholesterol</td><td id="mic-chol">0 mg</td></tr>
+            <tr><td>Saturated Fat</td><td id="mic-satfat">0 g</td></tr>
+          </table>
+        </div>
+      </div>
+
+      <!-- ── RECIPE BOOK PANEL ── -->
+      <div id="panel-rec" style="display:none">
+        <div style="display:flex;align-items:center;justify-content:space-between;margin-bottom:16px">
+          <div class="section-title" style="margin:0">Recipe Book</div>
+          <button class="btn btn-primary btn-sm" onclick="openNewRecipeModal()">+ New Recipe</button>
+        </div>
+
+        <div style="margin-bottom:12px;position:relative">
+          <input type="text" id="recipe-search" placeholder="Search recipes & saved foods..." oninput="filterRecipes(this.value)" style="padding-left:38px">
+          <span style="position:absolute;left:13px;top:50%;transform:translateY(-50%);font-size:15px;pointer-events:none">🔍</span>
+        </div>
+
+        <div class="chip-row" style="margin-bottom:14px" id="recipe-filter-chips">
+          <div class="chip active" onclick="setRecipeFilter('all',this)">All</div>
+          <div class="chip" onclick="setRecipeFilter('recipe',this)">Recipes</div>
+          <div class="chip" onclick="setRecipeFilter('saved',this)">Saved Foods</div>
+        </div>
+
+        <div id="saved-foods-section">
+          <div class="card">
+            <div style="display:flex;align-items:center;justify-content:space-between;margin-bottom:12px">
+              <div class="card-title" style="margin:0">Saved Foods</div>
+              <span id="saved-foods-count" style="font-size:11px;color:var(--muted)">0 items</span>
+            </div>
+            <div id="saved-foods-list">
+              <div style="color:var(--muted);font-size:14px;padding:8px 0">No saved foods yet. Log a food and tap 🔖 to save it here.</div>
+            </div>
+          </div>
+        </div>
+
+        <div id="recipes-section">
+          <div class="card-title" style="margin-bottom:10px">My Recipes</div>
+          <div id="recipe-list">
+            <div style="color:var(--muted);font-size:14px;padding:8px 0">No recipes yet. Tap + New Recipe to build one.</div>
+          </div>
+        </div>
+      </div>
+    </div>
+
+    <!-- WORKOUT -->
+    <div class="page" id="page-workout">
+
+      <!-- Nav: My Splits / Active Session -->
+      <div class="sub-tab-bar" style="margin-bottom:16px">
+        <button class="sub-tab active" id="wkt-view-splits" onclick="showWktView('splits')">My Splits</button>
+        <button class="sub-tab" id="wkt-view-today" onclick="showWktView('today')">Active Session</button>
+      </div>
+
+      <!-- ══ SPLITS BROWSER ══ -->
+      <div id="wkt-splits-view">
+        <div id="wkt-bc-splits">
+          <div style="display:flex;align-items:center;justify-content:space-between;margin-bottom:14px">
+            <div class="section-title" style="margin:0">My Splits</div>
+            <button class="btn btn-primary btn-sm" onclick="openNewSplitModal()">+ New Split</button>
+          </div>
+          <div id="splits-list">
+            <div style="color:var(--muted);font-size:14px;padding:8px 0">No splits yet. Tap + New Split to get started.</div>
+          </div>
+        </div>
+
+        <div id="wkt-bc-workouts" style="display:none">
+          <div style="display:flex;align-items:center;gap:10px;margin-bottom:14px">
+            <button onclick="navSplits()" style="background:none;border:none;color:var(--accent);font-size:22px;cursor:pointer;padding:0">‹</button>
+            <div class="section-title" style="margin:0;flex:1" id="split-workouts-title"></div>
+            <button class="btn btn-primary btn-sm" onclick="openNewWorkoutInSplit()">+ Workout</button>
+          </div>
+          <div id="split-desc-display" style="font-size:12px;color:var(--muted);margin-bottom:12px"></div>
+          <div id="split-workouts-list"></div>
+        </div>
+      </div>
+
+      <!-- ══ ACTIVE SESSION ══ -->
+      <div id="wkt-today-view" style="display:none">
+        <div style="display:flex;align-items:center;justify-content:space-between;margin-bottom:10px">
+          <div>
+            <div style="font-size:11px;color:var(--muted)" id="session-split-label"></div>
+            <div class="section-title" style="margin:0" id="session-title">Session</div>
+          </div>
+          <div style="display:flex;gap:6px">
+            <button class="btn btn-secondary btn-sm" onclick="showRestTimer()">⏱ Rest</button>
+            <button class="btn btn-primary btn-sm" onclick="finishWorkout()">Finish</button>
+          </div>
+        </div>
+
+        <div id="session-picker-area" style="margin-bottom:14px">
+          <div style="font-size:12px;color:var(--muted);margin-bottom:6px">Pick a workout to start:</div>
+          <div id="session-picker-list"></div>
+        </div>
+
+        <div style="display:flex;align-items:center;justify-content:space-between;margin-bottom:10px">
+          <div style="font-size:12px;color:var(--muted)" id="workout-session-name"></div>
+          <button class="btn btn-secondary btn-sm" id="session-add-ex-btn" style="display:none" onclick="openAddExercise()">+ Exercise</button>
+        </div>
+
+        <div id="exercise-list"></div>
+      </div>
+
+      <!-- ══ PROGRESS (scrolls below Active Session / Splits) ══ -->
+      <div style="margin-top:24px">
+        <div class="section-title">Progress</div>
+
+        <div class="stats-row" id="prog-summary-stats">
+          <div class="stat-box">
+            <div class="stat-val" id="prog-total-sessions">0</div>
+            <div class="stat-label">Sessions</div>
+          </div>
+          <div class="stat-box">
+            <div class="stat-val" id="prog-total-sets" style="color:var(--accent)">0</div>
+            <div class="stat-label">Total Sets</div>
+          </div>
+        </div>
+        <div class="stats-row">
+          <div class="stat-box">
+            <div class="stat-val" id="prog-total-vol" style="color:var(--blue)">0</div>
+            <div class="stat-label">Total Volume (lbs)</div>
+          </div>
+          <div class="stat-box">
+            <div class="stat-val" id="prog-exercises-count" style="color:var(--orange)">0</div>
+            <div class="stat-label">Exercises Tracked</div>
+          </div>
+        </div>
+
+        <div class="card">
+          <div class="card-title">Exercise Progress</div>
+          <select id="prog-exercise-select" onchange="renderExerciseChart()">
+            <option value="">— Select an exercise —</option>
+          </select>
+          <div id="prog-exercise-section" style="display:none;margin-top:16px">
+            <div style="display:flex;gap:10px;margin-bottom:14px" id="prog-pr-row"></div>
+            <div class="chip-row" id="prog-metric-chips">
+              <div class="chip active" onclick="setProgMetric('maxWeight',this)">Max Weight</div>
+              <div class="chip" onclick="setProgMetric('totalVolume',this)">Volume</div>
+              <div class="chip" onclick="setProgMetric('maxReps',this)">Max Reps</div>
+              <div class="chip" onclick="setProgMetric('sets',this)">Sets</div>
+            </div>
+            <div style="position:relative;height:200px;margin-top:4px">
+              <canvas id="prog-exercise-chart"></canvas>
+            </div>
+            <div style="font-size:11px;color:var(--muted);margin-top:6px;text-align:center" id="prog-chart-label">Max weight used per session</div>
+          </div>
+          <div id="prog-no-data" style="color:var(--muted);font-size:14px;padding:8px 0;display:none">No data for this exercise yet.</div>
+        </div>
+
+        <div class="card">
+          <div class="card-title">Weekly Volume (lbs)</div>
+          <div style="position:relative;height:160px">
+            <canvas id="prog-volume-chart"></canvas>
+          </div>
+        </div>
+
+        <div class="card">
+          <div class="card-title">Sessions per Week</div>
+          <div style="position:relative;height:140px">
+            <canvas id="prog-sessions-chart"></canvas>
+          </div>
+        </div>
+
+        <div class="card">
+          <div class="card-title">Volume by Muscle Group</div>
+          <div style="position:relative;height:180px">
+            <canvas id="prog-muscle-chart"></canvas>
+          </div>
+        </div>
+
+        <div class="card">
+          <div class="card-title">Personal Records</div>
+          <div id="prog-pr-list">
+            <div style="color:var(--muted);font-size:14px;padding:8px 0">Log workouts to see your PRs here.</div>
+          </div>
+        </div>
+      </div>
+    </div>
+
+    <!-- WEIGHT -->
+    <div class="page" id="page-weight">
+      <div class="section-title">Weight Tracking</div>
+      
+      <div class="card">
+        <div class="card-title">Log Today's Weight</div>
+        <label>Weight (lbs)</label>
+        <input type="number" id="weight-input" placeholder="e.g. 185.5" step="0.1" inputmode="decimal">
+        <label>Notes (optional)</label>
+        <input type="text" id="weight-note" placeholder="Morning, post-workout...">
+        <div style="height:12px"></div>
+        <button class="btn btn-primary" onclick="logWeight()">Log Weight</button>
+      </div>
+
+      <div class="card">
+        <div class="card-title">Progress Chart</div>
+        <canvas class="weight-chart" id="weight-chart" style="height:160px"></canvas>
+      </div>
+
+      <div class="card">
+        <div class="card-title">History</div>
+        <div id="weight-history"></div>
+      </div>
+    </div>
+
+    <!-- SETTINGS / PROFILE -->
+    <div class="page" id="page-settings">
+      <div class="section-title">Profile & Settings</div>
+
+      <div class="card">
+        <div class="card-title">Goals</div>
+        <label>Daily Calorie Goal</label>
+        <input type="number" id="set-cal-goal" placeholder="2500" inputmode="numeric">
+        <label>Protein Goal (g)</label>
+        <input type="number" id="set-protein-goal" placeholder="180" inputmode="numeric">
+        <label>Carb Goal (g)</label>
+        <input type="number" id="set-carbs-goal" placeholder="250" inputmode="numeric">
+        <label>Fat Goal (g)</label>
+        <input type="number" id="set-fat-goal" placeholder="70" inputmode="numeric">
+        <div style="height:12px"></div>
+        <button class="btn btn-primary" onclick="saveGoals()">Save Goals</button>
+      </div>
+
+      <div class="card">
+        <div class="card-title">Google Sheets Integration</div>
+        <label>Spreadsheet ID</label>
+        <input type="text" id="gs-sheet-id" placeholder="Paste your Google Sheet ID here">
+        <label>API Key</label>
+        <input type="text" id="gs-api-key" placeholder="Your Google Sheets API key">
+        <div style="height:4px"></div>
+        <div style="font-size:11px;color:var(--muted);margin-bottom:12px">Get your Sheet ID from the URL: docs.google.com/spreadsheets/d/<b>THIS_PART</b>/edit</div>
+        <button class="btn btn-primary" onclick="saveSheetConfig()">Save & Connect</button>
+        <div style="height:8px"></div>
+        <button class="btn btn-secondary" onclick="syncToSheets()">⚡ Sync All Data Now</button>
+        <div id="sheets-status" style="font-size:12px;color:var(--muted);margin-top:8px;text-align:center"></div>
+      </div>
+
+      <div class="card">
+        <div class="card-title">About</div>
+        <div class="setting-row">
+          <div><div class="setting-label">NOGTRITION</div><div class="setting-sub">Bodybuilder Tracking App</div></div>
+          <div class="setting-val">v1.0</div>
+        </div>
+        <div class="setting-row">
+          <div class="setting-label">Clear All Data</div>
+          <button class="btn btn-danger btn-sm" onclick="clearData()">Clear</button>
+        </div>
+      </div>
+    </div>
+  </div>
+
+  <div id="tabs">
+    <button class="tab active" onclick="navTo('dashboard',this)">
+      <svg viewBox="0 0 24 24" fill="none" stroke="currentColor"><rect x="3" y="3" width="7" height="7" rx="1"/><rect x="14" y="3" width="7" height="7" rx="1"/><rect x="3" y="14" width="7" height="7" rx="1"/><rect x="14" y="14" width="7" height="7" rx="1"/></svg>
+      Home
+    </button>
+    <button class="tab" onclick="navTo('nutrition',this)">
+      <svg viewBox="0 0 24 24" fill="none" stroke="currentColor"><path d="M12 2a10 10 0 1 0 0 20A10 10 0 0 0 12 2z"/><path d="M12 8v8M8 12h8"/></svg>
+      Nutrition
+    </button>
+    <button class="tab" onclick="navTo('workout',this)">
+      <svg viewBox="0 0 24 24" fill="none" stroke="currentColor"><path d="M6 4v16M18 4v16M4 8h4M16 8h4M4 16h4M16 16h4"/></svg>
+      Workout
+    </button>
+    <button class="tab" onclick="navTo('weight',this)">
+      <svg viewBox="0 0 24 24" fill="none" stroke="currentColor"><path d="M3 6h18M7 6V4a1 1 0 0 1 1-1h8a1 1 0 0 1 1 1v2M20 6l-1.5 14H5.5L4 6"/></svg>
+      Weight
+    </button>
+    <button class="tab" onclick="navTo('settings',this)">
+      <svg viewBox="0 0 24 24" fill="none" stroke="currentColor"><circle cx="12" cy="12" r="3"/><path d="M19.4 15a1.65 1.65 0 0 0 .33 1.82l.06.06a2 2 0 0 1-2.83 2.83l-.06-.06a1.65 1.65 0 0 0-1.82-.33 1.65 1.65 0 0 0-1 1.51V21a2 2 0 0 1-4 0v-.09A1.65 1.65 0 0 0 9 19.4a1.65 1.65 0 0 0-1.82.33l-.06.06a2 2 0 0 1-2.83-2.83l.06-.06A1.65 1.65 0 0 0 4.68 15a1.65 1.65 0 0 0-1.51-1H3a2 2 0 0 1 0-4h.09A1.65 1.65 0 0 0 4.6 9a1.65 1.65 0 0 0-.33-1.82l-.06-.06a2 2 0 0 1 2.83-2.83l.06.06A1.65 1.65 0 0 0 9 4.68a1.65 1.65 0 0 0 1-1.51V3a2 2 0 0 1 4 0v.09a1.65 1.65 0 0 0 1 1.51 1.65 1.65 0 0 0 1.82-.33l.06-.06a2 2 0 0 1 2.83 2.83l-.06.06A1.65 1.65 0 0 0 19.4 9a1.65 1.65 0 0 0 1.51 1H21a2 2 0 0 1 0 4h-.09a1.65 1.65 0 0 0-1.51 1z"/></svg>
+      Settings
+    </button>
+  </div>
+</div>
+
+<!-- NEW / EDIT SPLIT MODAL -->
+<div class="modal-overlay" id="split-modal">
+  <div class="modal">
+    <button class="modal-close" onclick="closeModal('split-modal')">✕</button>
+    <div class="modal-title" id="split-modal-title">New Split</div>
+    <label>Split Name</label>
+    <input type="text" id="split-name-input" placeholder="e.g. PPL, Upper/Lower, Bro Split...">
+    <label>Description (optional)</label>
+    <input type="text" id="split-desc-input" placeholder="e.g. 5-day push pull legs">
+    <input type="hidden" id="split-edit-id">
+    <div style="height:14px"></div>
+    <button class="btn btn-primary" onclick="saveSplit()">Save Split</button>
+  </div>
+</div>
+
+<!-- NEW / EDIT WORKOUT INSIDE SPLIT MODAL -->
+<div class="modal-overlay" id="split-workout-modal">
+  <div class="modal">
+    <button class="modal-close" onclick="closeModal('split-workout-modal')">✕</button>
+    <div class="modal-title" id="split-workout-modal-title">New Workout</div>
+    <label>Workout Name</label>
+    <input type="text" id="swkt-name-input" placeholder="e.g. Push A, Leg Day, Pull...">
+    <label>Focus / Notes (optional)</label>
+    <input type="text" id="swkt-focus-input" placeholder="e.g. Chest & shoulders emphasis">
+
+    <div style="margin-top:16px;margin-bottom:8px;display:flex;align-items:center;justify-content:space-between">
+      <div style="font-size:12px;color:var(--muted);text-transform:uppercase;letter-spacing:1px">Exercises</div>
+      <button class="btn btn-secondary btn-sm" onclick="addSwktExRow()">+ Add</button>
+    </div>
+    <div id="swkt-ex-editor" style="margin-bottom:14px"></div>
+
+    <input type="hidden" id="swkt-split-id">
+    <input type="hidden" id="swkt-edit-id">
+    <button class="btn btn-primary" onclick="saveWorkoutInSplit()">Save Workout</button>
+  </div>
+</div>
+
+<!-- REST TIMER OVERLAY -->
+<div id="rest-overlay">
+  <div class="timer-label">Rest Timer</div>
+  <div class="timer-ring">
+    <svg width="200" height="200" viewBox="0 0 200 200">
+      <circle cx="100" cy="100" r="88" fill="none" stroke="#1e1e1e" stroke-width="12"/>
+      <circle id="timer-arc" cx="100" cy="100" r="88" fill="none" stroke="#3b9eff" stroke-width="12"
+        stroke-linecap="round" stroke-dasharray="553" stroke-dashoffset="0" style="transition:stroke-dashoffset 1s linear"/>
+    </svg>
+    <div class="timer-ring-center">
+      <div class="timer-time" id="timer-display">2:00</div>
+    </div>
+  </div>
+  <div class="chip-row" style="justify-content:center">
+    <div class="chip" onclick="setTimer(60)">1 min</div>
+    <div class="chip" onclick="setTimer(90)">90s</div>
+    <div class="chip active" onclick="setTimer(120)">2 min</div>
+    <div class="chip" onclick="setTimer(180)">3 min</div>
+  </div>
+  <div style="display:flex;gap:12px;margin-top:8px">
+    <button class="btn btn-secondary" style="width:120px" onclick="toggleTimer()" id="timer-toggle-btn">Pause</button>
+    <button class="btn btn-danger" style="width:120px" onclick="closeTimer()">Close</button>
+  </div>
+</div>
+
+<!-- ADD FOOD MODAL -->
+<div class="modal-overlay" id="add-food-modal">
+  <div class="modal">
+    <button class="modal-close" onclick="closeModal('add-food-modal')">✕</button>
+    <div class="modal-title">Add Food</div>
+
+    <!-- ── FROM RECIPE BOOK ── -->
+    <div style="margin-bottom:4px">
+      <div style="display:flex;align-items:center;justify-content:space-between;margin-bottom:8px">
+        <div style="font-size:11px;text-transform:uppercase;letter-spacing:1px;color:var(--muted)">From Recipe Book</div>
+        <button onclick="toggleRecipeBookSection()" id="rb-toggle-btn" style="background:none;border:none;color:var(--accent);font-size:12px;cursor:pointer;font-family:'DM Sans',sans-serif">Show ▾</button>
+      </div>
+      <div id="rb-section" style="display:none">
+        <input type="text" id="rb-search" placeholder="Search recipes & saved foods..." oninput="filterRBSearch(this.value)" style="margin-bottom:8px">
+        <div class="chip-row" style="margin-bottom:10px" id="rb-type-chips">
+          <div class="chip active" onclick="setRBFilter('all',this)">All</div>
+          <div class="chip" onclick="setRBFilter('recipe',this)">Recipes</div>
+          <div class="chip" onclick="setRBFilter('food',this)">Saved Foods</div>
+        </div>
+        <div id="rb-results" style="max-height:220px;overflow-y:auto"></div>
+        <div style="height:4px"></div>
+        <div class="divider"></div>
+      </div>
+    </div>
+
+    <div id="barcode-area">
+      <div class="scan-icon">📷</div>
+      <div style="font-size:14px;font-weight:500;margin-bottom:4px">Scan Barcode</div>
+      <div style="font-size:12px;color:var(--muted);margin-bottom:12px">Use your camera to scan a food barcode</div>
+      <button class="btn btn-secondary btn-sm" onclick="startBarcodeScanner()">Open Scanner</button>
+    </div>
+
+    <div style="text-align:center;color:var(--muted);font-size:12px;margin:12px 0">— or search manually —</div>
+
+    <input type="text" id="food-search-input" placeholder="Search food (e.g. chicken breast)" oninput="debounceSearch(this.value)">
+    <div id="food-search-results" style="margin-top:8px;max-height:180px;overflow-y:auto"></div>
+
+    <div class="divider"></div>
+    <div style="font-size:12px;color:var(--muted);margin-bottom:8px">Or enter manually:</div>
+
+    <input type="text" id="manual-food-name" placeholder="Food name" style="margin-bottom:8px">
+    <div class="input-row">
+      <div><label>Calories</label><input type="number" id="manual-cal" placeholder="0" inputmode="decimal"></div>
+      <div><label>Protein (g)</label><input type="number" id="manual-protein" placeholder="0" inputmode="decimal"></div>
+    </div>
+    <div class="input-row">
+      <div><label>Carbs (g)</label><input type="number" id="manual-carbs" placeholder="0" inputmode="decimal"></div>
+      <div><label>Fat (g)</label><input type="number" id="manual-fat" placeholder="0" inputmode="decimal"></div>
+    </div>
+    <div class="input-row-3" style="margin-top:8px">
+      <div><label>Sodium (mg)</label><input type="number" id="manual-sodium" placeholder="0" inputmode="decimal"></div>
+      <div><label>Fiber (g)</label><input type="number" id="manual-fiber" placeholder="0" inputmode="decimal"></div>
+      <div><label>Sugar (g)</label><input type="number" id="manual-sugar" placeholder="0" inputmode="decimal"></div>
+    </div>
+    <div style="height:12px"></div>
+    <button class="btn btn-primary" onclick="addFoodManual()">Add to Log</button>
+    <div style="height:8px"></div>
+    <button class="btn btn-secondary" onclick="addFoodManual(true)">Add to Log + Save to Recipe Book</button>
+  </div>
+</div>
+
+<!-- ADD EXERCISE MODAL -->
+<div class="modal-overlay" id="add-exercise-modal">
+  <div class="modal">
+    <button class="modal-close" onclick="closeModal('add-exercise-modal')">✕</button>
+    <div class="modal-title">Add Exercise</div>
+    <label>Exercise Name</label>
+    <input type="text" id="ex-name" placeholder="e.g. Bench Press, Squat...">
+    <label>Muscle Group</label>
+    <select id="ex-muscle">
+      <option>Chest</option><option>Back</option><option>Shoulders</option>
+      <option>Biceps</option><option>Triceps</option><option>Legs</option>
+      <option>Glutes</option><option>Core</option><option>Cardio</option>
+    </select>
+    <div style="height:12px"></div>
+    <button class="btn btn-primary" onclick="addExercise()">Add Exercise</button>
+  </div>
+</div>
+
+<!-- ADD SET MODAL -->
+<div class="modal-overlay" id="add-set-modal">
+  <div class="modal">
+    <button class="modal-close" onclick="closeModal('add-set-modal')">✕</button>
+    <div class="modal-title" id="add-set-title">Add Set</div>
+
+    <!-- Set type pills -->
+    <div style="margin-bottom:14px">
+      <div style="font-size:11px;color:var(--muted);text-transform:uppercase;letter-spacing:1px;margin-bottom:8px">Set Type</div>
+      <div style="display:flex;flex-wrap:wrap;gap:6px" id="set-type-chips">
+        <div class="chip active" onclick="selectSetType('normal',this)" data-type="normal">Working Set</div>
+        <div class="chip" onclick="selectSetType('warmup',this)" data-type="warmup">Warm-up</div>
+        <div class="chip" onclick="selectSetType('dropset',this)" data-type="dropset">Drop Set</div>
+        <div class="chip" onclick="selectSetType('assisted',this)" data-type="assisted">Assisted</div>
+      </div>
+    </div>
+
+    <!-- Main inputs -->
+    <div class="input-row">
+      <div><label>Weight (lbs)</label><input type="number" id="set-weight" placeholder="135" inputmode="decimal"></div>
+      <div><label>Reps</label><input type="number" id="set-reps" placeholder="8" inputmode="numeric"></div>
+    </div>
+
+    <!-- Assisted reps (shown only when type = assisted) -->
+    <div id="assisted-section" style="display:none;margin-top:10px">
+      <label>Assisted Reps</label>
+      <input type="number" id="set-assisted-reps" placeholder="3" inputmode="numeric">
+    </div>
+
+    <!-- Drop set details (shown only when type = dropset) -->
+    <div id="dropset-section" style="display:none;margin-top:10px">
+      <div style="font-size:12px;color:var(--muted);margin-bottom:8px">Drop (reduced weight after initial set)</div>
+      <div class="input-row">
+        <div><label>Drop Weight (lbs)</label><input type="number" id="set-drop-weight" placeholder="95" inputmode="decimal"></div>
+        <div><label>Drop Reps</label><input type="number" id="set-drop-reps" placeholder="6" inputmode="numeric"></div>
+      </div>
+    </div>
+
+    <!-- RIR -->
+    <div style="margin-top:12px">
+      <label style="margin-bottom:6px">Reps in Reserve (RIR)</label>
+      <div style="display:flex;gap:8px;align-items:center">
+        <div style="display:flex;gap:6px" id="rir-chips">
+          <div class="chip" onclick="selectRIR(0,this)">0</div>
+          <div class="chip" onclick="selectRIR(1,this)">1</div>
+          <div class="chip" onclick="selectRIR(2,this)">2</div>
+          <div class="chip" onclick="selectRIR(3,this)">3</div>
+          <div class="chip active" onclick="selectRIR(null,this)">—</div>
+        </div>
+        <span style="font-size:11px;color:var(--muted)" id="rir-label">Not set</span>
+      </div>
+    </div>
+
+    <label style="margin-top:12px">Notes (optional)</label>
+    <input type="text" id="set-notes" placeholder="PR, form cue, etc.">
+
+    <div style="height:14px"></div>
+    <button class="btn btn-primary" onclick="confirmAddSet()">Log Set</button>
+    <div style="height:8px"></div>
+    <button class="btn btn-secondary" onclick="startRestAndClose()">Log Set + Start Rest Timer</button>
+  </div>
+</div>
+
+<!-- BARCODE SCANNER MODAL -->
+<div class="modal-overlay" id="barcode-modal">
+  <div class="modal">
+    <button class="modal-close" onclick="stopScanner()">✕</button>
+    <div class="modal-title">Scan Barcode</div>
+    <video id="scanner-video" style="width:100%;border-radius:10px;background:#000;max-height:260px;object-fit:cover" autoplay playsinline></video>
+    <div id="scan-status" style="text-align:center;font-size:13px;color:var(--muted);margin-top:12px">Point camera at barcode...</div>
+    <div style="height:12px"></div>
+    <button class="btn btn-secondary" onclick="stopScanner()">Cancel</button>
+  </div>
+</div>
+
+<!-- NEW RECIPE MODAL -->
+<div class="modal-overlay" id="new-recipe-modal">
+  <div class="modal">
+    <button class="modal-close" onclick="closeModal('new-recipe-modal')">✕</button>
+    <div class="modal-title" id="recipe-modal-title">New Recipe</div>
+
+    <label>Recipe Name</label>
+    <input type="text" id="recipe-name-input" placeholder="e.g. Post-Workout Shake">
+    <label>Category</label>
+    <select id="recipe-category-input">
+      <option>Breakfast</option><option>Lunch</option><option>Dinner</option>
+      <option>Snack</option><option>Pre-Workout</option><option>Post-Workout</option><option>Other</option>
+    </select>
+    <label>Notes / Instructions (optional)</label>
+    <textarea id="recipe-notes-input" placeholder="Blend all ingredients, refrigerate overnight..." style="height:72px;resize:none"></textarea>
+
+    <div style="margin-top:16px;margin-bottom:8px;display:flex;align-items:center;justify-content:space-between">
+      <div style="font-size:12px;color:var(--muted);text-transform:uppercase;letter-spacing:1px">Ingredients</div>
+      <button class="btn btn-secondary btn-sm" onclick="openPickIngredient()">+ Add Ingredient</button>
+    </div>
+    <div id="recipe-ingredients-list" style="margin-bottom:12px">
+      <div style="color:var(--muted);font-size:13px;padding:6px 0" id="recipe-ing-empty">No ingredients yet.</div>
+    </div>
+
+    <!-- Running totals -->
+    <div id="recipe-totals-bar" style="background:var(--surface2);border-radius:10px;padding:10px 12px;margin-bottom:14px;display:none">
+      <div style="font-size:10px;color:var(--muted);margin-bottom:6px;text-transform:uppercase;letter-spacing:1px">Total Nutrition</div>
+      <div style="display:flex;justify-content:space-between">
+        <div style="text-align:center">
+          <div style="font-family:'Bebas Neue',sans-serif;font-size:20px;color:var(--accent)" id="rtotal-cal">0</div>
+          <div style="font-size:9px;color:var(--muted)">kcal</div>
+        </div>
+        <div style="text-align:center">
+          <div style="font-family:'Bebas Neue',sans-serif;font-size:20px;color:var(--blue)" id="rtotal-protein">0g</div>
+          <div style="font-size:9px;color:var(--muted)">protein</div>
+        </div>
+        <div style="text-align:center">
+          <div style="font-family:'Bebas Neue',sans-serif;font-size:20px;color:var(--orange)" id="rtotal-carbs">0g</div>
+          <div style="font-size:9px;color:var(--muted)">carbs</div>
+        </div>
+        <div style="text-align:center">
+          <div style="font-family:'Bebas Neue',sans-serif;font-size:20px;color:var(--text)" id="rtotal-fat">0g</div>
+          <div style="font-size:9px;color:var(--muted)">fat</div>
+        </div>
+      </div>
+    </div>
+
+    <input type="hidden" id="recipe-edit-id">
+    <button class="btn btn-primary" onclick="saveRecipe()">Save Recipe</button>
+  </div>
+</div>
+
+<!-- PICK INGREDIENT MODAL -->
+<div class="modal-overlay" id="pick-ingredient-modal">
+  <div class="modal">
+    <button class="modal-close" onclick="closeModal('pick-ingredient-modal')">✕</button>
+    <div class="modal-title">Add Ingredient</div>
+    <input type="text" id="ing-search" placeholder="Search saved foods..." oninput="filterIngredients(this.value)" style="margin-bottom:10px">
+    <div id="ing-results" style="max-height:320px;overflow-y:auto"></div>
+  </div>
+</div>
+
+<!-- RECIPE DETAIL MODAL -->
+<div class="modal-overlay" id="recipe-detail-modal">
+  <div class="modal">
+    <button class="modal-close" onclick="closeModal('recipe-detail-modal')">✕</button>
+    <div style="display:flex;align-items:flex-start;justify-content:space-between;margin-bottom:4px">
+      <div class="modal-title" id="detail-recipe-name" style="margin:0;flex:1"></div>
+      <button class="btn btn-secondary btn-sm" style="margin-left:8px;flex-shrink:0" onclick="editRecipeFromDetail()">Edit</button>
+    </div>
+    <div id="detail-recipe-meta" style="font-size:12px;color:var(--muted);margin-bottom:14px"></div>
+
+    <!-- Nutrition summary -->
+    <div style="background:var(--surface2);border-radius:10px;padding:12px;margin-bottom:14px">
+      <div style="display:flex;justify-content:space-between">
+        <div style="text-align:center">
+          <div style="font-family:'Bebas Neue',sans-serif;font-size:24px;color:var(--accent)" id="detail-cal">0</div>
+          <div style="font-size:9px;color:var(--muted)">kcal</div>
+        </div>
+        <div style="text-align:center">
+          <div style="font-family:'Bebas Neue',sans-serif;font-size:24px;color:var(--blue)" id="detail-protein">0g</div>
+          <div style="font-size:9px;color:var(--muted)">protein</div>
+        </div>
+        <div style="text-align:center">
+          <div style="font-family:'Bebas Neue',sans-serif;font-size:24px;color:var(--orange)" id="detail-carbs">0g</div>
+          <div style="font-size:9px;color:var(--muted)">carbs</div>
+        </div>
+        <div style="text-align:center">
+          <div style="font-family:'Bebas Neue',sans-serif;font-size:24px;color:var(--text)" id="detail-fat">0g</div>
+          <div style="font-size:9px;color:var(--muted)">fat</div>
+        </div>
+      </div>
+    </div>
+
+    <div style="font-size:12px;color:var(--muted);text-transform:uppercase;letter-spacing:1px;margin-bottom:8px">Ingredients</div>
+    <div id="detail-ingredients" style="margin-bottom:14px"></div>
+
+    <div id="detail-notes-wrap" style="display:none;margin-bottom:14px">
+      <div style="font-size:12px;color:var(--muted);text-transform:uppercase;letter-spacing:1px;margin-bottom:6px">Instructions</div>
+      <div id="detail-notes" style="font-size:14px;color:var(--text);line-height:1.6;background:var(--surface2);border-radius:10px;padding:12px"></div>
+    </div>
+
+    <button class="btn btn-primary" onclick="logRecipeToday()">Log to Today's Food Log</button>
+    <div style="height:8px"></div>
+    <button class="btn btn-danger" onclick="deleteRecipeFromDetail()">Delete Recipe</button>
+  </div>
+</div>
+
+<div id="toast"></div>
+
+<script src="https://cdnjs.cloudflare.com/ajax/libs/Chart.js/4.4.0/chart.umd.min.js"></script>
+<script>
+// ── STATE ──────────────────────────────────────────────────────────────────
+const today = () => new Date().toISOString().slice(0,10);
+
+function loadState() {
+  try { return JSON.parse(localStorage.getItem('ironlog_state') || '{}'); } catch { return {}; }
+}
+function saveState() {
+  localStorage.setItem('ironlog_state', JSON.stringify(state));
+}
+
+let state = loadState();
+if (!state.goals) state.goals = { calories: 2500, protein: 180, carbs: 250, fat: 70 };
+if (!state.foodLog) state.foodLog = {};
+if (!state.workoutLog) state.workoutLog = {};
+if (!state.weightLog) state.weightLog = [];
+if (!state.sheets) state.sheets = { id: '', key: '' };
+if (!state.activeExerciseIndex) state.activeExerciseIndex = null;
+if (!state.recipes) state.recipes = [];
+if (!state.savedFoods) state.savedFoods = [];
+if (!state.splits) state.splits = [];
+
+// ── NAV ────────────────────────────────────────────────────────────────────
+// Track active sub-tab per page so switching back restores state
+const subTabState = { nutrition: 'nut', workout: 'wkt' };
+
+function switchSubTab(panel, el) {
+  const page = el.closest('.page').id.replace('page-','');
+  subTabState[page] = panel;
+
+  // Hide all panels in this page, show the target
+  el.closest('.page').querySelectorAll('[id^="panel-"]').forEach(p => p.style.display = 'none');
+  document.getElementById('panel-' + panel).style.display = 'block';
+
+  // Update sub-tab button states
+  el.closest('.sub-tab-bar').querySelectorAll('.sub-tab').forEach(t => t.classList.remove('active'));
+  el.classList.add('active');
+
+  // Trigger refresh for the panel being shown
+  if (panel === 'nut') { selectedNutDate = today(); buildDayStrip(); refreshNutrition(); }
+  if (panel === 'rec') refreshRecipes();
+}
+
+function navTo(page, tabEl) {
+  document.querySelectorAll('.page').forEach(p => p.classList.remove('active'));
+  document.querySelectorAll('.tab').forEach(t => t.classList.remove('active'));
+  document.getElementById('page-' + page).classList.add('active');
+  tabEl.classList.add('active');
+
+  if (page === 'dashboard') refreshDashboard();
+  if (page === 'nutrition') {
+    const active = subTabState['nutrition'] || 'nut';
+    const bar = document.querySelector('#page-nutrition .sub-tab-bar');
+    document.querySelectorAll('#page-nutrition [id^="panel-"]').forEach(p => p.style.display = 'none');
+    document.getElementById('panel-' + active).style.display = 'block';
+    bar.querySelectorAll('.sub-tab').forEach(t => t.classList.toggle('active', t.id === 'sub-' + active));
+    if (active === 'nut') { selectedNutDate = today(); buildDayStrip(); refreshNutrition(); }
+    else refreshRecipes();
+  }
+  if (page === 'workout') { showWktView('splits'); refreshProgress(); }
+  if (page === 'weight') refreshWeight();
+  if (page === 'settings') loadSettings();
+}
+
+// ── DATE ───────────────────────────────────────────────────────────────────
+const dateEl = document.getElementById('header-date');
+const now = new Date();
+dateEl.textContent = now.toLocaleDateString('en-US', { weekday:'short', month:'short', day:'numeric' });
+
+// ── TOAST ──────────────────────────────────────────────────────────────────
+let toastTimer;
+function showToast(msg, type='') {
+  const t = document.getElementById('toast');
+  t.textContent = msg;
+  t.className = 'show ' + type;
+  clearTimeout(toastTimer);
+  toastTimer = setTimeout(() => t.className = '', 2500);
+}
+
+// ── MODALS ─────────────────────────────────────────────────────────────────
+function closeModal(id) { document.getElementById(id).classList.remove('show'); }
+function openModal(id) { document.getElementById(id).classList.add('show'); }
+
+// ── FOOD / NUTRITION ───────────────────────────────────────────────────────
+let selectedNutDate = today();
+
+function buildDayStrip() {
+  const strip = document.getElementById('nut-day-strip');
+  const todayStr = today();
+
+  // Show Mon–Sun of the current week (3 past days + today + 3 future days = full 7-day week)
+  const todayDate = new Date();
+  const dayOfWeek = todayDate.getDay(); // 0=Sun, 1=Mon...
+  // Find Monday of current week
+  const monday = new Date(todayDate);
+  monday.setDate(todayDate.getDate() - ((dayOfWeek + 6) % 7));
+
+  const days = [];
+  for (let i = 0; i < 7; i++) {
+    const d = new Date(monday);
+    d.setDate(monday.getDate() + i);
+    days.push(d.toISOString().slice(0, 10));
+  }
+
+  strip.innerHTML = days.map(dateStr => {
+    const d = new Date(dateStr + 'T12:00:00');
+    const dayName   = d.toLocaleDateString('en-US', { weekday: 'short' });
+    const dayNum    = d.getDate();
+    const isToday   = dateStr === todayStr;
+    const isFuture  = dateStr > todayStr;
+    const isSelected = dateStr === selectedNutDate;
+    const hasFoods  = (state.foodLog[dateStr] || []).length > 0;
+    const totalCal  = (state.foodLog[dateStr] || []).reduce((s,f) => s + (f.cal||0), 0);
+
+    const borderCol  = isSelected ? 'var(--accent)' : isToday ? 'var(--border)' : 'transparent';
+    const bgCol      = isSelected ? 'rgba(59,158,255,0.15)' : isToday ? 'var(--surface2)' : 'var(--surface)';
+    const labelCol   = isSelected ? 'var(--accent)' : 'var(--muted)';
+    const numCol     = isSelected ? 'var(--accent)' : isToday ? 'var(--text)' : isFuture ? 'rgba(255,255,255,0.3)' : 'var(--muted)';
+    const dotBg      = hasFoods ? 'var(--accent)' : 'transparent';
+
+    return `<div onclick="selectNutDay('${dateStr}')" style="
+      flex:1;
+      min-width:0;
+      padding:10px 4px 8px;
+      border-radius:12px;
+      text-align:center;
+      cursor:pointer;
+      border:1.5px solid ${borderCol};
+      background:${bgCol};
+      transition:all 0.15s;
+    ">
+      <div style="font-size:10px;color:${labelCol};text-transform:uppercase;letter-spacing:0.5px;margin-bottom:4px">${dayName}</div>
+      <div style="font-family:'Bebas Neue',sans-serif;font-size:22px;line-height:1;color:${numCol}">${dayNum}</div>
+      <div style="margin-top:5px;width:5px;height:5px;border-radius:50%;background:${dotBg};margin-left:auto;margin-right:auto"></div>
+      ${hasFoods ? `<div style="font-size:9px;color:var(--muted);margin-top:2px">${Math.round(totalCal)}</div>` : '<div style="height:14px"></div>'}
+    </div>`;
+  }).join('');
+
+  // Update label
+  const sel = new Date(selectedNutDate + 'T12:00:00');
+  const isFutureSelected = selectedNutDate > todayStr;
+  const label = selectedNutDate === todayStr
+    ? 'Today · ' + sel.toLocaleDateString('en-US', { weekday:'long', month:'long', day:'numeric' })
+    : (isFutureSelected ? 'Upcoming · ' : '') + sel.toLocaleDateString('en-US', { weekday:'long', month:'long', day:'numeric' });
+  document.getElementById('nut-selected-date').textContent = label;
+
+  // Show Add Food button only for today (can't log to future days)
+  const addBtn = document.getElementById('nut-add-btn');
+  if (addBtn) addBtn.style.display = selectedNutDate === todayStr ? 'inline-block' : 'none';
+}
+
+function selectNutDay(dateStr) {
+  selectedNutDate = dateStr;
+  buildDayStrip();
+  refreshNutrition();
+}
+
+function openAddFood() {
+  document.getElementById('manual-food-name').value = '';
+  document.getElementById('manual-cal').value = '';
+  document.getElementById('manual-protein').value = '';
+  document.getElementById('manual-carbs').value = '';
+  document.getElementById('manual-fat').value = '';
+  document.getElementById('manual-sodium').value = '';
+  document.getElementById('manual-fiber').value = '';
+  document.getElementById('manual-sugar').value = '';
+  document.getElementById('food-search-input').value = '';
+  document.getElementById('food-search-results').innerHTML = '';
+  // Reset recipe book section to collapsed
+  rbOpen = false;
+  document.getElementById('rb-section').style.display = 'none';
+  document.getElementById('rb-toggle-btn').textContent = 'Show ▾';
+  document.getElementById('rb-search').value = '';
+  openModal('add-food-modal');
+}
+
+let searchTimer;
+function debounceSearch(q) {
+  clearTimeout(searchTimer);
+  searchTimer = setTimeout(() => searchFood(q), 500);
+}
+
+async function searchFood(query) {
+  if (!query.trim()) { document.getElementById('food-search-results').innerHTML = ''; return; }
+  const res = document.getElementById('food-search-results');
+  res.innerHTML = '<div style="color:var(--muted);font-size:13px;padding:8px">Searching...</div>';
+  try {
+    const url = `https://world.openfoodfacts.org/cgi/search.pl?search_terms=${encodeURIComponent(query)}&search_simple=1&action=process&json=1&page_size=5`;
+    const r = await fetch(url);
+    const data = await r.json();
+    if (!data.products || !data.products.length) {
+      res.innerHTML = '<div style="color:var(--muted);font-size:13px;padding:8px">No results found.</div>';
+      return;
+    }
+    res.innerHTML = data.products.slice(0,5).map((p,i) => {
+      const n = p.nutriments || {};
+      return `<div onclick='selectSearchResult(${JSON.stringify({
+        name: p.product_name || 'Unknown',
+        cal: Math.round(n['energy-kcal_100g'] || n['energy-kcal'] || 0),
+        protein: +(n.proteins_100g || 0).toFixed(1),
+        carbs: +(n.carbohydrates_100g || 0).toFixed(1),
+        fat: +(n.fat_100g || 0).toFixed(1),
+        sodium: Math.round((n.sodium_100g || 0)*1000),
+        fiber: +(n.fiber_100g || 0).toFixed(1),
+        sugar: +(n.sugars_100g || 0).toFixed(1),
+        calcium: Math.round(n.calcium_100g*1000||0),
+        iron: +(n.iron_100g||0).toFixed(2),
+        potassium: Math.round(n.potassium_100g*1000||0)
+      }).replace(/'/g,"&#39;")})'
+        style="padding:10px 0;border-bottom:1px solid var(--border);cursor:pointer">
+        <div style="font-size:14px;font-weight:500">${p.product_name || 'Unknown'}</div>
+        <div style="font-size:11px;color:var(--muted)">${Math.round(n['energy-kcal_100g']||0)} kcal · P:${+(n.proteins_100g||0).toFixed(1)}g C:${+(n.carbohydrates_100g||0).toFixed(1)}g F:${+(n.fat_100g||0).toFixed(1)}g <span style="color:var(--accent)">(per 100g)</span></div>
+      </div>`;
+    }).join('');
+  } catch(e) {
+    res.innerHTML = '<div style="color:var(--muted);font-size:13px;padding:8px">Search failed. Check connection.</div>';
+  }
+}
+
+function selectSearchResult(food) {
+  document.getElementById('manual-food-name').value = food.name;
+  document.getElementById('manual-cal').value = food.cal;
+  document.getElementById('manual-protein').value = food.protein;
+  document.getElementById('manual-carbs').value = food.carbs;
+  document.getElementById('manual-fat').value = food.fat;
+  document.getElementById('manual-sodium').value = food.sodium || '';
+  document.getElementById('manual-fiber').value = food.fiber || '';
+  document.getElementById('manual-sugar').value = food.sugar || '';
+  document.getElementById('food-search-results').innerHTML = '<div style="color:var(--accent);font-size:12px;padding:4px">✓ Food selected — adjust serving size below</div>';
+}
+
+// Derive meal name from current device time
+function getMealFromTime() {
+  const h = new Date().getHours();
+  if (h >= 5  && h < 9)  return 'Breakfast';
+  if (h >= 9  && h < 11) return 'Morning Snack';
+  if (h >= 11 && h < 14) return 'Lunch';
+  if (h >= 14 && h < 17) return 'Afternoon Snack';
+  if (h >= 17 && h < 20) return 'Dinner';
+  if (h >= 20 && h < 23) return 'Evening Snack';
+  return 'Late Night Snack';
+}
+
+function addFoodManual(saveToBook = false) {
+  const name = document.getElementById('manual-food-name').value.trim();
+  if (!name) { showToast('Enter a food name','error'); return; }
+  const entry = {
+    id: Date.now(),
+    name,
+    meal: getMealFromTime(),
+    cal: parseFloat(document.getElementById('manual-cal').value) || 0,
+    protein: parseFloat(document.getElementById('manual-protein').value) || 0,
+    carbs: parseFloat(document.getElementById('manual-carbs').value) || 0,
+    fat: parseFloat(document.getElementById('manual-fat').value) || 0,
+    sodium: parseFloat(document.getElementById('manual-sodium').value) || 0,
+    fiber: parseFloat(document.getElementById('manual-fiber').value) || 0,
+    sugar: parseFloat(document.getElementById('manual-sugar').value) || 0,
+    calcium: parseFloat(document.getElementById('manual-calcium')?.value) || 0,
+    iron: parseFloat(document.getElementById('manual-iron')?.value) || 0,
+    potassium: parseFloat(document.getElementById('manual-potassium')?.value) || 0,
+    vitc: 0, vitd: 0, chol: 0, satfat: 0,
+    time: new Date().toLocaleTimeString('en-US', {hour:'2-digit',minute:'2-digit'})
+  };
+  const d = today();
+  if (!state.foodLog[d]) state.foodLog[d] = [];
+  state.foodLog[d].push(entry);
+
+  if (saveToBook) {
+    const saved = {
+      id: Date.now() + 1,
+      name: entry.name,
+      cal: entry.cal, protein: entry.protein, carbs: entry.carbs, fat: entry.fat,
+      sodium: entry.sodium, fiber: entry.fiber, sugar: entry.sugar,
+      savedAt: today()
+    };
+    if (!state.savedFoods) state.savedFoods = [];
+    // avoid exact duplicates by name
+    if (!state.savedFoods.find(f => f.name.toLowerCase() === saved.name.toLowerCase())) {
+      state.savedFoods.push(saved);
+    }
+  }
+
+  saveState();
+  closeModal('add-food-modal');
+  buildDayStrip();
+  refreshNutrition();
+  refreshDashboard();
+  showToast(saveToBook ? 'Logged & saved to Recipe Book! 📖' : 'Food logged!', 'success');
+}
+
+function deleteFood(id) {
+  state.foodLog[selectedNutDate] = (state.foodLog[selectedNutDate] || []).filter(f => f.id !== id);
+  saveState();
+  buildDayStrip();
+  refreshNutrition();
+  refreshDashboard();
+  showToast('Removed');
+}
+
+function getTodayTotals() {
+  return getDayTotals(today());
+}
+
+function getDayTotals(dateStr) {
+  const foods = state.foodLog[dateStr] || [];
+  return foods.reduce((acc, f) => {
+    acc.cal += f.cal || 0;
+    acc.protein += f.protein || 0;
+    acc.carbs += f.carbs || 0;
+    acc.fat += f.fat || 0;
+    acc.sodium += f.sodium || 0;
+    acc.fiber += f.fiber || 0;
+    acc.sugar += f.sugar || 0;
+    acc.calcium += f.calcium || 0;
+    acc.iron += f.iron || 0;
+    acc.potassium += f.potassium || 0;
+    acc.vitc += f.vitc || 0;
+    acc.vitd += f.vitd || 0;
+    acc.chol += f.chol || 0;
+    acc.satfat += f.satfat || 0;
+    return acc;
+  }, {cal:0,protein:0,carbs:0,fat:0,sodium:0,fiber:0,sugar:0,calcium:0,iron:0,potassium:0,vitc:0,vitd:0,chol:0,satfat:0});
+}
+
+function refreshNutrition() {
+  const t = getDayTotals(selectedNutDate);
+  const g = state.goals;
+  document.getElementById('nut-consumed').textContent = Math.round(t.cal);
+  document.getElementById('nut-remaining').textContent = Math.max(0, Math.round(g.calories - t.cal));
+
+  // Macros
+  document.getElementById('nut-protein-val').textContent = t.protein.toFixed(0) + 'g';
+  document.getElementById('nut-carbs-val').textContent   = t.carbs.toFixed(0) + 'g';
+  document.getElementById('nut-fat-val').textContent     = t.fat.toFixed(0) + 'g';
+  document.getElementById('nut-bar-protein').style.width = Math.min(100, t.protein / g.protein * 100).toFixed(1) + '%';
+  document.getElementById('nut-bar-carbs').style.width   = Math.min(100, t.carbs   / g.carbs   * 100).toFixed(1) + '%';
+  document.getElementById('nut-bar-fat').style.width     = Math.min(100, t.fat     / g.fat     * 100).toFixed(1) + '%';
+  document.getElementById('nut-bar-protein-lbl').textContent = `${t.protein.toFixed(0)} / ${g.protein}g`;
+  document.getElementById('nut-bar-carbs-lbl').textContent   = `${t.carbs.toFixed(0)} / ${g.carbs}g`;
+  document.getElementById('nut-bar-fat-lbl').textContent     = `${t.fat.toFixed(0)} / ${g.fat}g`;
+
+  const foods = state.foodLog[selectedNutDate] || [];
+  const listEl = document.getElementById('food-log-list');
+  const isToday = selectedNutDate === today();
+
+  if (!foods.length) {
+    listEl.innerHTML = `<div style="color:var(--muted);font-size:14px;padding:8px 0">${isToday ? 'No foods logged yet.' : 'Nothing logged this day.'}</div>`;
+  } else {
+    const meals = {};
+    foods.forEach(f => { if (!meals[f.meal]) meals[f.meal] = []; meals[f.meal].push(f); });
+    listEl.innerHTML = Object.entries(meals).map(([meal, items]) => {
+      const mealCal = items.reduce((s,f) => s+f.cal, 0);
+      return `<div class="meal-section">
+        <div class="meal-header">
+          <span class="meal-name">${meal}</span>
+          <span class="meal-kcal">${Math.round(mealCal)} kcal</span>
+        </div>
+        <div class="meal-body">
+          ${items.map(f => `
+            <div class="food-item">
+              <div>
+                <div class="food-name">${f.name}</div>
+                <div class="food-detail">P:${f.protein.toFixed(1)}g · C:${f.carbs.toFixed(1)}g · F:${f.fat.toFixed(1)}g · ${f.time}</div>
+              </div>
+              <div style="display:flex;align-items:center;gap:6px">
+                <div class="food-cals">${Math.round(f.cal)}</div>
+                <button class="del-btn" title="Save to Recipe Book" onclick="saveFoodFromLog(${f.id})" style="color:var(--accent);font-size:14px">🔖</button>
+                <button class="del-btn" onclick="deleteFood(${f.id})">✕</button>
+              </div>
+            </div>`).join('')}
+        </div>
+      </div>`;
+    }).join('');
+  }
+
+  const fix = n => n.toFixed(1);
+  document.getElementById('mic-sodium').textContent = Math.round(t.sodium) + ' mg';
+  document.getElementById('mic-fiber').textContent = fix(t.fiber) + ' g';
+  document.getElementById('mic-sugar').textContent = fix(t.sugar) + ' g';
+  document.getElementById('mic-calcium').textContent = Math.round(t.calcium) + ' mg';
+  document.getElementById('mic-iron').textContent = fix(t.iron) + ' mg';
+  document.getElementById('mic-potassium').textContent = Math.round(t.potassium) + ' mg';
+  document.getElementById('mic-vitc').textContent = fix(t.vitc) + ' mg';
+  document.getElementById('mic-vitd').textContent = Math.round(t.vitd) + ' IU';
+  document.getElementById('mic-chol').textContent = Math.round(t.chol) + ' mg';
+  document.getElementById('mic-satfat').textContent = fix(t.satfat) + ' g';
+}
+
+// ── DASHBOARD ──────────────────────────────────────────────────────────────
+function refreshDashboard() {
+  const t = getTodayTotals();
+  const g = state.goals;
+  const remaining = Math.max(0, g.calories - t.cal);
+
+  document.getElementById('cal-remaining-num').textContent = Math.round(remaining);
+  document.getElementById('dash-consumed').textContent = Math.round(t.cal);
+  document.getElementById('dash-goal').textContent = g.calories;
+
+  const pct = Math.min(1, t.cal / g.calories);
+  const circ = 427;
+  document.getElementById('cal-ring').style.strokeDashoffset = circ - pct * circ;
+  document.getElementById('cal-ring').style.stroke = pct > 1 ? 'var(--accent2)' : 'var(--accent)';
+
+  document.getElementById('dash-protein').textContent = t.protein.toFixed(0) + 'g';
+  document.getElementById('dash-carbs').textContent = t.carbs.toFixed(0) + 'g';
+  document.getElementById('dash-fat').textContent = t.fat.toFixed(0) + 'g';
+  document.getElementById('bar-protein').style.width = Math.min(100, t.protein/g.protein*100).toFixed(1) + '%';
+  document.getElementById('bar-carbs').style.width = Math.min(100, t.carbs/g.carbs*100).toFixed(1) + '%';
+  document.getElementById('bar-fat').style.width = Math.min(100, t.fat/g.fat*100).toFixed(1) + '%';
+  document.getElementById('bar-protein-label').textContent = `${t.protein.toFixed(0)} / ${g.protein}g`;
+  document.getElementById('bar-carbs-label').textContent = `${t.carbs.toFixed(0)} / ${g.carbs}g`;
+  document.getElementById('bar-fat-label').textContent = `${t.fat.toFixed(0)} / ${g.fat}g`;
+
+  const todayWorkout = state.workoutLog[today()];
+  const wSummaryEl = document.getElementById('dash-workout-summary');
+  if (todayWorkout && todayWorkout.exercises && todayWorkout.exercises.length) {
+    const totalSets = todayWorkout.exercises.reduce((s,e) => s + (e.sets||[]).length, 0);
+    wSummaryEl.innerHTML = `<span style="color:var(--green)">✓ ${todayWorkout.exercises.length} exercises · ${totalSets} sets</span>`;
+  } else {
+    wSummaryEl.innerHTML = `<span style="color:var(--muted)">No workout logged today.</span>`;
+  }
+
+  drawMiniWeightChart();
+}
+
+// ── WORKOUT SPLITS ─────────────────────────────────────────────────────────
+// Data model:
+//   state.splits = [{ id, name, desc, workouts: [{ id, name, focus, exercises:[{name,muscle,targetSets,targetReps}] }] }]
+//   state.workoutLog[date] = { date, name, splitId, workoutId, splitName, exercises:[{name,muscle,targetSets,targetReps,sets:[]}] }
+
+let activeSplitId = null;
+let swktExRows = [];
+
+// ── VIEW SWITCHING ──
+function showWktView(view) {
+  document.getElementById('wkt-splits-view').style.display = view === 'splits' ? 'block' : 'none';
+  document.getElementById('wkt-today-view').style.display  = view === 'today'  ? 'block' : 'none';
+  document.getElementById('wkt-view-splits').classList.toggle('active', view === 'splits');
+  document.getElementById('wkt-view-today').classList.toggle('active',  view === 'today');
+  if (view === 'splits') navSplits();
+  if (view === 'today')  { renderSessionPicker(); refreshWorkout(); }
+}
+
+// ── SPLITS LIST ──
+function navSplits() {
+  document.getElementById('wkt-bc-splits').style.display = 'block';
+  document.getElementById('wkt-bc-workouts').style.display = 'none';
+  activeSplitId = null;
+  renderSplitsList();
+}
+
+function renderSplitsList() {
+  const el = document.getElementById('splits-list');
+  const splits = state.splits || [];
+  if (!splits.length) {
+    el.innerHTML = '<div style="color:var(--muted);font-size:14px;padding:8px 0">No splits yet. Tap + New Split to get started.</div>';
+    return;
+  }
+  el.innerHTML = splits.map(s => {
+    const wktCount = (s.workouts||[]).length;
+    const exTotal  = (s.workouts||[]).reduce((n,w)=>(n+(w.exercises||[]).length),0);
+    return `<div class="card" style="cursor:pointer;margin-bottom:10px" onclick="openSplitWorkouts(${s.id})">
+      <div style="display:flex;align-items:center;justify-content:space-between">
+        <div style="flex:1;min-width:0">
+          <div style="font-size:16px;font-weight:500;margin-bottom:2px">${s.name}</div>
+          ${s.desc ? `<div style="font-size:12px;color:var(--muted);margin-bottom:8px">${s.desc}</div>` : ''}
+          <div style="display:flex;gap:10px;margin-top:6px">
+            <span style="font-size:12px;color:var(--muted)">${wktCount} workout${wktCount!==1?'s':''}</span>
+            <span style="font-size:12px;color:var(--muted)">${exTotal} exercise${exTotal!==1?'s':''}</span>
+          </div>
+        </div>
+        <div style="display:flex;gap:8px;align-items:center;margin-left:10px;flex-shrink:0">
+          <button class="btn btn-secondary btn-sm" onclick="event.stopPropagation();openNewSplitModal(${s.id})">Edit</button>
+          <button class="del-btn" onclick="event.stopPropagation();deleteSplit(${s.id})">\u2715</button>
+        </div>
+      </div>
+    </div>`;
+  }).join('');
+}
+
+// ── SPLIT CRUD ──
+function openNewSplitModal(editId = null) {
+  document.getElementById('split-name-input').value = '';
+  document.getElementById('split-desc-input').value = '';
+  document.getElementById('split-edit-id').value = editId || '';
+  document.getElementById('split-modal-title').textContent = editId ? 'Edit Split' : 'New Split';
+  if (editId) {
+    const s = (state.splits||[]).find(s=>s.id===editId);
+    if (s) { document.getElementById('split-name-input').value=s.name; document.getElementById('split-desc-input').value=s.desc||''; }
+  }
+  openModal('split-modal');
+}
+
+function saveSplit() {
+  const name = document.getElementById('split-name-input').value.trim();
+  if (!name) { showToast('Enter a split name','error'); return; }
+  const editId = parseInt(document.getElementById('split-edit-id').value)||null;
+  if (!state.splits) state.splits = [];
+  if (editId) {
+    const s = state.splits.find(s=>s.id===editId);
+    if (s) { s.name=name; s.desc=document.getElementById('split-desc-input').value.trim(); }
+  } else {
+    state.splits.push({ id:Date.now(), name, desc:document.getElementById('split-desc-input').value.trim(), workouts:[] });
+  }
+  saveState(); closeModal('split-modal'); renderSplitsList();
+  showToast(editId ? 'Split updated!' : 'Split created! \ud83d\udcaa', 'success');
+}
+
+function deleteSplit(id) {
+  if (!confirm('Delete this split and all its workouts?')) return;
+  state.splits = (state.splits||[]).filter(s=>s.id!==id);
+  saveState(); renderSplitsList();
+  showToast('Split deleted');
+}
+
+// ── WORKOUTS INSIDE A SPLIT ──
+function openSplitWorkouts(splitId) {
+  activeSplitId = splitId;
+  const s = (state.splits||[]).find(s=>s.id===splitId);
+  if (!s) return;
+  document.getElementById('wkt-bc-splits').style.display = 'none';
+  document.getElementById('wkt-bc-workouts').style.display = 'block';
+  document.getElementById('split-workouts-title').textContent = s.name;
+  document.getElementById('split-desc-display').textContent = s.desc || '';
+  renderWorkoutsInSplit(s);
+}
+
+function renderWorkoutsInSplit(s) {
+  const el = document.getElementById('split-workouts-list');
+  if (!(s.workouts||[]).length) {
+    el.innerHTML = '<div style="color:var(--muted);font-size:14px;padding:8px 0">No workouts yet. Tap + Workout to add one.</div>';
+    return;
+  }
+  el.innerHTML = (s.workouts||[]).map(w => `
+    <div class="card" style="margin-bottom:10px">
+      <div style="display:flex;align-items:flex-start;justify-content:space-between;gap:8px">
+        <div style="flex:1;min-width:0">
+          <div style="font-size:15px;font-weight:500;margin-bottom:2px">${w.name}</div>
+          ${w.focus ? `<div style="font-size:12px;color:var(--muted);margin-bottom:8px">${w.focus}</div>` : ''}
+          <div style="display:flex;flex-wrap:wrap;gap:5px;margin-top:6px">
+            ${(w.exercises||[]).map(ex=>`<span style="background:rgba(59,158,255,0.12);color:var(--accent);font-size:11px;padding:3px 8px;border-radius:6px;white-space:nowrap">${ex.name} <span style="opacity:.6">${ex.muscle}</span></span>`).join('')}
+          </div>
+        </div>
+        <div style="display:flex;flex-direction:column;gap:6px;flex-shrink:0;margin-left:8px">
+          <button class="btn btn-primary btn-sm" onclick="startSessionFromWorkout(${s.id},${w.id})">\u25b6 Start</button>
+          <button class="btn btn-secondary btn-sm" onclick="openEditWorkout(${s.id},${w.id})">Edit</button>
+          <button class="del-btn" onclick="deleteWorkoutFromSplit(${s.id},${w.id})" style="text-align:center">\u2715</button>
+        </div>
+      </div>
+    </div>`).join('');
+}
+
+// ── WORKOUT-IN-SPLIT CRUD ──
+let swktSplitId = null, swktEditId = null;
+const MUSCLE_GROUPS = ['Chest','Back','Shoulders','Biceps','Triceps','Legs','Glutes','Core','Cardio','Full Body'];
+
+function openNewWorkoutInSplit() {
+  swktSplitId = activeSplitId; swktEditId = null; swktExRows = [];
+  document.getElementById('swkt-name-input').value = '';
+  document.getElementById('swkt-focus-input').value = '';
+  document.getElementById('swkt-split-id').value = swktSplitId;
+  document.getElementById('swkt-edit-id').value = '';
+  document.getElementById('split-workout-modal-title').textContent = 'New Workout';
+  renderSwktExEditor(); openModal('split-workout-modal');
+}
+
+function openEditWorkout(splitId, workoutId) {
+  swktSplitId=splitId; swktEditId=workoutId;
+  const s=(state.splits||[]).find(s=>s.id===splitId);
+  const w=s&&(s.workouts||[]).find(w=>w.id===workoutId);
+  if(!w) return;
+  document.getElementById('swkt-name-input').value=w.name;
+  document.getElementById('swkt-focus-input').value=w.focus||'';
+  document.getElementById('swkt-split-id').value=splitId;
+  document.getElementById('swkt-edit-id').value=workoutId;
+  document.getElementById('split-workout-modal-title').textContent='Edit Workout';
+  swktExRows=(w.exercises||[]).map(e=>({...e}));
+  renderSwktExEditor(); openModal('split-workout-modal');
+}
+
+function renderSwktExEditor() {
+  const el = document.getElementById('swkt-ex-editor');
+  if (!swktExRows.length) { el.innerHTML='<div style="color:var(--muted);font-size:13px;padding:6px 0 10px">No exercises yet \u2014 tap + Add above.</div>'; return; }
+  el.innerHTML = swktExRows.map((ex,i)=>`
+    <div style="padding:10px 0;border-bottom:1px solid var(--border)">
+      <div style="display:flex;gap:8px;align-items:flex-start">
+        <div style="flex:1;min-width:0;display:flex;flex-direction:column;gap:6px">
+          <input type="text" value="${ex.name||''}" placeholder="Exercise name" oninput="swktExRows[${i}].name=this.value" style="font-size:14px">
+          <select onchange="swktExRows[${i}].muscle=this.value" style="font-size:13px">
+            ${MUSCLE_GROUPS.map(m=>`<option${ex.muscle===m?' selected':''}>${m}</option>`).join('')}
+          </select>
+          <div style="display:flex;gap:6px">
+            <div style="flex:1"><label style="margin-top:0;font-size:10px">Target Sets</label><input type="number" value="${ex.targetSets||3}" min="1" oninput="swktExRows[${i}].targetSets=+this.value" style="font-size:13px;padding:6px 10px"></div>
+            <div style="flex:1"><label style="margin-top:0;font-size:10px">Target Reps</label><input type="number" value="${ex.targetReps||8}" min="1" oninput="swktExRows[${i}].targetReps=+this.value" style="font-size:13px;padding:6px 10px"></div>
+          </div>
+        </div>
+        <button class="del-btn" onclick="removeSwktEx(${i})" style="margin-top:4px">\u2715</button>
+      </div>
+    </div>`).join('');
+}
+
+function addSwktExRow() {
+  swktExRows.push({name:'',muscle:'Chest',targetSets:3,targetReps:8});
+  renderSwktExEditor();
+  const inp=document.querySelectorAll('#swkt-ex-editor input[type="text"]');
+  if(inp.length) inp[inp.length-1].focus();
+}
+
+function removeSwktEx(i) { swktExRows.splice(i,1); renderSwktExEditor(); }
+
+function saveWorkoutInSplit() {
+  const name=document.getElementById('swkt-name-input').value.trim();
+  if(!name){showToast('Enter a workout name','error');return;}
+  const validEx=swktExRows.filter(e=>e.name.trim());
+  const splitId=parseInt(document.getElementById('swkt-split-id').value);
+  const editId=parseInt(document.getElementById('swkt-edit-id').value)||null;
+  const s=(state.splits||[]).find(s=>s.id===splitId);
+  if(!s) return;
+  if(!s.workouts) s.workouts=[];
+  const wkt={
+    id:editId||Date.now(), name,
+    focus:document.getElementById('swkt-focus-input').value.trim(),
+    exercises:validEx.map(e=>({name:e.name.trim(),muscle:e.muscle,targetSets:e.targetSets||3,targetReps:e.targetReps||8}))
+  };
+  if(editId){const idx=s.workouts.findIndex(w=>w.id===editId);if(idx>-1)s.workouts[idx]=wkt;else s.workouts.push(wkt);}
+  else s.workouts.push(wkt);
+  saveState(); closeModal('split-workout-modal'); renderWorkoutsInSplit(s);
+  showToast(editId?'Workout updated!':'Workout added! \ud83d\udcaa','success');
+}
+
+function deleteWorkoutFromSplit(splitId,workoutId) {
+  if(!confirm('Delete this workout?')) return;
+  const s=(state.splits||[]).find(s=>s.id===splitId);
+  if(s){s.workouts=(s.workouts||[]).filter(w=>w.id!==workoutId);saveState();renderWorkoutsInSplit(s);}
+  showToast('Workout deleted');
+}
+
+// ── START SESSION ──
+function startSessionFromWorkout(splitId,workoutId) {
+  const s=(state.splits||[]).find(s=>s.id===splitId);
+  const w=s&&(s.workouts||[]).find(w=>w.id===workoutId);
+  if(!w) return;
+  const d=today();
+  state.workoutLog[d]={
+    date:d, name:w.name, splitId, workoutId, splitName:s.name,
+    exercises:(w.exercises||[]).map(ex=>({name:ex.name,muscle:ex.muscle,targetSets:ex.targetSets,targetReps:ex.targetReps,sets:[]}))
+  };
+  saveState(); showWktView('today');
+  showToast(w.name+' started! Let\'s go \ud83d\udd25','success');
+}
+
+function renderSessionPicker() {
+  const el=document.getElementById('session-picker-list');
+  const splits=state.splits||[];
+  if(!splits.length){el.innerHTML='<div style="color:var(--muted);font-size:13px;padding:8px 0">No splits yet \u2014 create one in My Splits.</div>';return;}
+  const html=splits.map(s=>{
+    const workouts=s.workouts||[];
+    if(!workouts.length) return '';
+    return `<div style="margin-bottom:12px">
+      <div style="font-size:11px;color:var(--muted);text-transform:uppercase;letter-spacing:1px;margin-bottom:6px">${s.name}</div>
+      <div style="display:flex;flex-wrap:wrap;gap:6px">
+        ${workouts.map(w=>`<button class="chip" onclick="startSessionFromWorkout(${s.id},${w.id})">${w.name}</button>`).join('')}
+      </div>
+    </div>`;
+  }).filter(Boolean).join('');
+  el.innerHTML=html||'<div style="color:var(--muted);font-size:13px;padding:4px 0">Add workouts to your splits first.</div>';
+}
+
+// ── WORKOUT SESSION ────────────────────────────────────────────────────────
+function getOrCreateTodayWorkout() {
+  const d=today();
+  if(!state.workoutLog[d]){state.workoutLog[d]={date:d,name:'Freeform Workout',exercises:[]};saveState();}
+  return state.workoutLog[d];
+}
+
+function refreshWorkout() {
+  const w=getOrCreateTodayWorkout();
+  const has=w.exercises.length>0;
+  document.getElementById('session-picker-area').style.display=has?'none':'block';
+  document.getElementById('session-add-ex-btn').style.display=has?'inline-block':'none';
+  const titleEl=document.getElementById('session-title');
+  const splitLbl=document.getElementById('session-split-label');
+  if(titleEl) titleEl.textContent=has?w.name:'Active Session';
+  if(splitLbl) splitLbl.textContent=w.splitName||'';
+  const nameEl=document.getElementById('workout-session-name');
+  if(nameEl) nameEl.textContent=has?(w.exercises.length+' exercise'+(w.exercises.length!==1?'s':'')):'';
+  if(!has){renderSessionPicker();document.getElementById('exercise-list').innerHTML='';return;}
+
+  document.getElementById('exercise-list').innerHTML=w.exercises.map((ex,ei)=>{
+    const sets=ex.sets||[];
+    const best=getPrevBest(ex.name);
+    return `<div class="exercise-card">
+      <div class="exercise-header">
+        <div style="flex:1;min-width:0">
+          <div class="exercise-name">${ex.name}</div>
+          <div class="exercise-sets">
+            <span style="color:var(--muted)">${ex.muscle}</span>
+            ${ex.targetSets?`<span style="color:var(--muted)"> \u00b7 target ${ex.targetSets}\u00d7${ex.targetReps}</span>`:''}
+            ${best?`<span style="color:var(--accent)"> \u00b7 best ${best}lbs</span>`:''}
+          </div>
+        </div>
+        <div style="display:flex;align-items:center;gap:6px;flex-shrink:0">
+          <button class="btn btn-primary btn-sm" onclick="openAddSet(${ei})">+ Set</button>
+          <button class="del-btn" onclick="deleteExercise(${ei})">\u2715</button>
+        </div>
+      </div>
+      ${sets.length?`<table class="sets-table">
+        <tr><th>#</th><th>Weight</th><th>Reps</th><th>Details</th><th></th></tr>
+        ${sets.map((s,si)=>{
+          const typeBadge = s.type === 'warmup'  ? `<span style="background:rgba(255,200,50,0.15);color:#ffcc32;font-size:9px;padding:2px 6px;border-radius:5px;margin-right:4px">WARM</span>`
+                          : s.type === 'dropset' ? `<span style="background:rgba(255,80,80,0.15);color:#ff5050;font-size:9px;padding:2px 6px;border-radius:5px;margin-right:4px">DROP</span>`
+                          : s.type === 'assisted'? `<span style="background:rgba(130,80,255,0.15);color:#a060ff;font-size:9px;padding:2px 6px;border-radius:5px;margin-right:4px">ASST</span>`
+                          : '';
+          const dropInfo  = s.type==='dropset' && s.dropWeight ? `<div style="font-size:10px;color:#ff5050">↓${s.dropWeight}lbs×${s.dropReps||'?'}</div>` : '';
+          const asstInfo  = s.type==='assisted' && s.assistedReps ? `<div style="font-size:10px;color:#a060ff">+${s.assistedReps} assisted</div>` : '';
+          const rirInfo   = s.rir !== null && s.rir !== undefined ? `<span style="font-size:10px;color:var(--muted)">RIR ${s.rir}</span>` : '';
+          const noteInfo  = s.notes ? `<span style="font-size:10px;color:var(--muted);margin-left:4px">${s.notes}</span>` : '';
+          return `<tr>
+            <td style="color:var(--muted)">${si+1}</td>
+            <td class="${s.type==='warmup'?'':'set-done'}" style="${s.type==='warmup'?'color:var(--muted)':''}"> ${s.weight}lbs</td>
+            <td>${s.reps}</td>
+            <td style="min-width:80px">${typeBadge}${rirInfo}${noteInfo}${dropInfo}${asstInfo}</td>
+            <td><button class="del-btn" onclick="deleteSet(${ei},${si})">\u2715</button></td>
+          </tr>`;
+        }).join('')}
+      </table>`:`<div style="padding:8px 12px;font-size:12px;color:var(--muted)">No sets yet \u2014 tap + Set to log.</div>`}
+    </div>`;
+  }).join('');
+}
+
+function getPrevBest(exName) {
+  const name=exName.toLowerCase(); let best=0; const todayStr=today();
+  Object.entries(state.workoutLog||{}).forEach(([date,w])=>{
+    if(date===todayStr) return;
+    (w.exercises||[]).forEach(ex=>{
+      if(ex.name.toLowerCase()===name)(ex.sets||[]).forEach(s=>{if((s.weight||0)>best)best=s.weight;});
+    });
+  });
+  return best>0?best:null;
+}
+
+function openAddExercise(){openModal('add-exercise-modal');}
+function addExercise(){
+  const name=document.getElementById('ex-name').value.trim();
+  if(!name){showToast('Enter exercise name','error');return;}
+  const w=getOrCreateTodayWorkout();
+  w.exercises.push({name,muscle:document.getElementById('ex-muscle').value,sets:[]});
+  saveState(); document.getElementById('ex-name').value='';
+  closeModal('add-exercise-modal'); refreshWorkout();
+  showToast('Exercise added!','success');
+}
+
+function deleteExercise(ei){const w=getOrCreateTodayWorkout();w.exercises.splice(ei,1);saveState();refreshWorkout();}
+
+let currentSetType = 'normal';
+let currentRIR = null;
+
+function selectSetType(type, el) {
+  currentSetType = type;
+  document.querySelectorAll('#set-type-chips .chip').forEach(c => c.classList.remove('active'));
+  el.classList.add('active');
+  document.getElementById('assisted-section').style.display = type === 'assisted' ? 'block' : 'none';
+  document.getElementById('dropset-section').style.display  = type === 'dropset'  ? 'block' : 'none';
+}
+
+function selectRIR(val, el) {
+  currentRIR = val;
+  document.querySelectorAll('#rir-chips .chip').forEach(c => c.classList.remove('active'));
+  el.classList.add('active');
+  document.getElementById('rir-label').textContent = val === null ? 'Not set' : val === 0 ? 'Failure / 0 left' : val + ' rep' + (val !== 1 ? 's' : '') + ' left in tank';
+}
+
+function openAddSet(ei) {
+  currentExerciseIndex = ei;
+  currentSetType = 'normal';
+  currentRIR = null;
+  const ex = getOrCreateTodayWorkout().exercises[ei];
+  document.getElementById('add-set-title').textContent = ex.name;
+  document.getElementById('set-weight').value = '';
+  document.getElementById('set-reps').value = ex.targetReps || '';
+  document.getElementById('set-notes').value = '';
+  document.getElementById('set-assisted-reps').value = '';
+  document.getElementById('set-drop-weight').value = '';
+  document.getElementById('set-drop-reps').value = '';
+  // Reset type chips
+  document.querySelectorAll('#set-type-chips .chip').forEach(c => c.classList.toggle('active', c.dataset.type === 'normal'));
+  document.getElementById('assisted-section').style.display = 'none';
+  document.getElementById('dropset-section').style.display = 'none';
+  // Reset RIR chips
+  document.querySelectorAll('#rir-chips .chip').forEach((c, i, arr) => c.classList.toggle('active', i === arr.length - 1));
+  document.getElementById('rir-label').textContent = 'Not set';
+  openModal('add-set-modal');
+}
+
+function confirmAddSet() {
+  const wt = document.getElementById('set-weight').value;
+  const r  = document.getElementById('set-reps').value;
+  if (!wt || !r) { showToast('Enter weight & reps', 'error'); return; }
+
+  const set = {
+    weight: parseFloat(wt),
+    reps: parseInt(r),
+    type: currentSetType,
+    rir: currentRIR,
+    notes: document.getElementById('set-notes').value,
+    time: new Date().toLocaleTimeString('en-US', { hour: '2-digit', minute: '2-digit' })
+  };
+
+  if (currentSetType === 'assisted') {
+    const ar = document.getElementById('set-assisted-reps').value;
+    if (ar) set.assistedReps = parseInt(ar);
+  }
+
+  if (currentSetType === 'dropset') {
+    const dw = document.getElementById('set-drop-weight').value;
+    const dr = document.getElementById('set-drop-reps').value;
+    if (dw) set.dropWeight = parseFloat(dw);
+    if (dr) set.dropReps   = parseInt(dr);
+  }
+
+  getOrCreateTodayWorkout().exercises[currentExerciseIndex].sets.push(set);
+  saveState();
+  closeModal('add-set-modal');
+  refreshWorkout();
+  showToast('Set logged! 💪', 'success');
+}
+
+function startRestAndClose(){confirmAddSet();setTimeout(()=>showRestTimer(),300);}
+
+function deleteSet(ei,si){const w=getOrCreateTodayWorkout();w.exercises[ei].sets.splice(si,1);saveState();refreshWorkout();}
+
+function finishWorkout(){
+  const w=getOrCreateTodayWorkout();
+  const total=w.exercises.reduce((s,e)=>s+(e.sets||[]).length,0);
+  showToast(`${w.name} done! ${total} sets logged \ud83d\udd25`,'success');
+  refreshDashboard();
+}
+
+
+// ── REST TIMER ─────────────────────────────────────────────────────────────
+let timerDuration = 120, timerRemaining = 120, timerInterval = null, timerRunning = false;
+
+function showRestTimer() {
+  document.getElementById('rest-overlay').classList.add('show');
+  setTimer(timerDuration);
+  startTimerAuto();
+}
+function closeTimer() {
+  document.getElementById('rest-overlay').classList.remove('show');
+  clearInterval(timerInterval); timerRunning = false;
+}
+function setTimer(secs) {
+  clearInterval(timerInterval); timerRunning = false;
+  timerDuration = secs; timerRemaining = secs;
+  updateTimerDisplay();
+  document.getElementById('timer-toggle-btn').textContent = 'Start';
+  document.querySelectorAll('.chip').forEach(c => c.classList.remove('active'));
+}
+function startTimerAuto() {
+  timerRemaining = timerDuration;
+  timerRunning = true;
+  document.getElementById('timer-toggle-btn').textContent = 'Pause';
+  clearInterval(timerInterval);
+  timerInterval = setInterval(() => {
+    if (!timerRunning) return;
+    timerRemaining--;
+    updateTimerDisplay();
+    if (timerRemaining <= 0) {
+      clearInterval(timerInterval); timerRunning = false;
+      document.getElementById('timer-toggle-btn').textContent = 'Restart';
+      showToast('Rest complete! 🏋️', 'success');
+      if ('vibrate' in navigator) navigator.vibrate([200,100,200]);
+    }
+  }, 1000);
+}
+function toggleTimer() {
+  if (timerRemaining <= 0) { timerRemaining = timerDuration; timerRunning = true; startTimerAuto(); return; }
+  timerRunning = !timerRunning;
+  document.getElementById('timer-toggle-btn').textContent = timerRunning ? 'Pause' : 'Resume';
+  if (timerRunning && !timerInterval) startTimerAuto();
+}
+function updateTimerDisplay() {
+  const m = Math.floor(timerRemaining / 60);
+  const s = timerRemaining % 60;
+  document.getElementById('timer-display').textContent = `${m}:${String(s).padStart(2,'0')}`;
+  const pct = timerRemaining / timerDuration;
+  const circ = 553;
+  document.getElementById('timer-arc').style.strokeDashoffset = circ * (1 - pct);
+  document.getElementById('timer-arc').style.stroke = timerRemaining <= 10 ? 'var(--accent2)' : 'var(--accent)';
+}
+
+// ── WEIGHT TRACKING ────────────────────────────────────────────────────────
+function logWeight() {
+  const v = parseFloat(document.getElementById('weight-input').value);
+  if (!v || v < 50 || v > 500) { showToast('Enter a valid weight','error'); return; }
+  state.weightLog.push({ date: today(), weight: v, note: document.getElementById('weight-note').value });
+  state.weightLog.sort((a,b) => a.date.localeCompare(b.date));
+  saveState();
+  document.getElementById('weight-input').value = '';
+  document.getElementById('weight-note').value = '';
+  refreshWeight();
+  refreshDashboard();
+  showToast('Weight logged!', 'success');
+}
+
+let weightChartInst = null, miniWeightChartInst = null;
+
+function refreshWeight() {
+  const entries = state.weightLog.slice(-30);
+  const histEl = document.getElementById('weight-history');
+  if (!entries.length) { histEl.innerHTML = '<div style="color:var(--muted);font-size:14px;padding:8px 0">No weight entries yet.</div>'; }
+  else {
+    histEl.innerHTML = [...entries].reverse().slice(0,20).map(e =>
+      `<div class="weight-entry">
+        <div><div class="weight-date">${e.date}</div>${e.note ? `<div style="font-size:11px;color:var(--muted)">${e.note}</div>` : ''}</div>
+        <div class="weight-val">${e.weight} lbs</div>
+      </div>`).join('');
+  }
+  drawWeightChart('weight-chart', entries, weightChartInst, inst => weightChartInst = inst);
+}
+
+function drawWeightChart(canvasId, entries, existingInst, setInst) {
+  const canvas = document.getElementById(canvasId);
+  if (!canvas) return;
+  if (existingInst) { existingInst.destroy(); }
+  if (!entries.length) return;
+  const ctx = canvas.getContext('2d');
+  const inst = new Chart(ctx, {
+    type: 'line',
+    data: {
+      labels: entries.map(e => e.date.slice(5)),
+      datasets: [{
+        data: entries.map(e => e.weight),
+        borderColor: '#47b4ff', backgroundColor: 'rgba(71,180,255,0.08)',
+        pointBackgroundColor: '#47b4ff', pointRadius: 3, tension: 0.3, fill: true,
+        borderWidth: 2
+      }]
+    },
+    options: {
+      responsive: true, maintainAspectRatio: false,
+      plugins: { legend: { display: false } },
+      scales: {
+        x: { ticks: { color: '#888', font:{size:10} }, grid: { color: '#2a2a2a' } },
+        y: { ticks: { color: '#888', font:{size:10} }, grid: { color: '#2a2a2a' } }
+      }
+    }
+  });
+  setInst(inst);
+}
+
+function drawMiniWeightChart() {
+  const entries = state.weightLog.slice(-14);
+  drawWeightChart('mini-weight-chart', entries, miniWeightChartInst, inst => miniWeightChartInst = inst);
+}
+
+// ── BARCODE SCANNER ────────────────────────────────────────────────────────
+let scanStream = null;
+async function startBarcodeScanner() {
+  closeModal('add-food-modal');
+  openModal('barcode-modal');
+  try {
+    const stream = await navigator.mediaDevices.getUserMedia({ video: { facingMode: 'environment' } });
+    scanStream = stream;
+    const video = document.getElementById('scanner-video');
+    video.srcObject = stream;
+    document.getElementById('scan-status').textContent = 'Point camera at barcode...';
+    if ('BarcodeDetector' in window) {
+      const detector = new BarcodeDetector({ formats: ['ean_13','ean_8','upc_a','upc_e','code_128','code_39'] });
+      const scanLoop = async () => {
+        if (!scanStream) return;
+        try {
+          const barcodes = await detector.detect(video);
+          if (barcodes.length > 0) {
+            const barcode = barcodes[0].rawValue;
+            document.getElementById('scan-status').textContent = 'Found: ' + barcode + ' — looking up...';
+            await lookupBarcode(barcode);
+            return;
+          }
+        } catch {}
+        setTimeout(scanLoop, 500);
+      };
+      await new Promise(r => setTimeout(r, 1500));
+      scanLoop();
+    } else {
+      document.getElementById('scan-status').innerHTML = 'Barcode scanning not supported in this browser.<br><small>Try Chrome on Android. Enter barcode manually below:</small>';
+      const barcodeInput = document.createElement('input');
+      barcodeInput.type = 'number';
+      barcodeInput.placeholder = 'Enter barcode number';
+      barcodeInput.style.cssText = 'margin-top:10px;width:100%;background:var(--surface2);border:1px solid var(--border);color:var(--text);border-radius:10px;padding:10px;font-size:15px;font-family:DM Sans,sans-serif';
+      barcodeInput.addEventListener('change', () => lookupBarcode(barcodeInput.value));
+      document.getElementById('scan-status').after(barcodeInput);
+    }
+  } catch(e) {
+    document.getElementById('scan-status').textContent = 'Camera access denied. Please allow camera permission.';
+  }
+}
+
+async function lookupBarcode(barcode) {
+  document.getElementById('scan-status').textContent = 'Looking up barcode ' + barcode + '...';
+  try {
+    const r = await fetch(`https://world.openfoodfacts.org/api/v0/product/${barcode}.json`);
+    const data = await r.json();
+    if (data.status === 1 && data.product) {
+      const p = data.product;
+      const n = p.nutriments || {};
+      stopScanner();
+      openModal('add-food-modal');
+      document.getElementById('manual-food-name').value = p.product_name || 'Unknown product';
+      document.getElementById('manual-cal').value = Math.round(n['energy-kcal_100g'] || 0);
+      document.getElementById('manual-protein').value = (n.proteins_100g || 0).toFixed(1);
+      document.getElementById('manual-carbs').value = (n.carbohydrates_100g || 0).toFixed(1);
+      document.getElementById('manual-fat').value = (n.fat_100g || 0).toFixed(1);
+      document.getElementById('manual-sodium').value = Math.round((n.sodium_100g || 0) * 1000);
+      document.getElementById('manual-fiber').value = (n.fiber_100g || 0).toFixed(1);
+      document.getElementById('manual-sugar').value = (n.sugars_100g || 0).toFixed(1);
+      showToast('✓ Product found! ' + p.product_name?.slice(0,20), 'success');
+    } else {
+      document.getElementById('scan-status').textContent = 'Product not found. Try scanning again or enter manually.';
+    }
+  } catch {
+    document.getElementById('scan-status').textContent = 'Lookup failed. Check connection.';
+  }
+}
+
+function stopScanner() {
+  if (scanStream) { scanStream.getTracks().forEach(t => t.stop()); scanStream = null; }
+  closeModal('barcode-modal');
+}
+
+// ── SETTINGS ───────────────────────────────────────────────────────────────
+function loadSettings() {
+  const g = state.goals;
+  document.getElementById('set-cal-goal').value = g.calories;
+  document.getElementById('set-protein-goal').value = g.protein;
+  document.getElementById('set-carbs-goal').value = g.carbs;
+  document.getElementById('set-fat-goal').value = g.fat;
+  document.getElementById('gs-sheet-id').value = state.sheets.id || '';
+  document.getElementById('gs-api-key').value = state.sheets.key || '';
+}
+
+function saveGoals() {
+  state.goals = {
+    calories: parseInt(document.getElementById('set-cal-goal').value) || 2500,
+    protein: parseInt(document.getElementById('set-protein-goal').value) || 180,
+    carbs: parseInt(document.getElementById('set-carbs-goal').value) || 250,
+    fat: parseInt(document.getElementById('set-fat-goal').value) || 70
+  };
+  saveState(); refreshDashboard();
+  showToast('Goals saved!', 'success');
+}
+
+function saveSheetConfig() {
+  state.sheets.id = document.getElementById('gs-sheet-id').value.trim();
+  state.sheets.key = document.getElementById('gs-api-key').value.trim();
+  saveState();
+  showToast('Sheets config saved!', 'success');
+}
+
+function clearData() {
+  if (confirm('Clear ALL data? This cannot be undone.')) {
+    localStorage.removeItem('ironlog_state');
+    state = { goals:{calories:2500,protein:180,carbs:250,fat:70}, foodLog:{}, workoutLog:{}, weightLog:[], sheets:{id:'',key:''} };
+    saveState(); refreshDashboard(); refreshNutrition(); refreshWorkout(); refreshWeight(); loadSettings();
+    showToast('All data cleared');
+  }
+}
+
+// ── GOOGLE SHEETS SYNC ─────────────────────────────────────────────────────
+async function syncToSheets() {
+  const { id, key } = state.sheets;
+  if (!id || !key) {
+    showToast('Set Sheet ID & API key first','error');
+    navTo('settings', document.querySelectorAll('.tab')[4]);
+    return;
+  }
+  document.getElementById('sheets-status').textContent = 'Syncing...';
+  try {
+    const rows = [];
+    // Food log rows
+    Object.entries(state.foodLog).forEach(([date, foods]) => {
+      foods.forEach(f => {
+        rows.push([date, 'food', f.meal, f.name, f.cal, f.protein, f.carbs, f.fat, f.sodium, f.fiber, f.sugar]);
+      });
+    });
+    // Weight rows
+    state.weightLog.forEach(w => rows.push([w.date, 'weight', '', '', w.weight, '', '', '', '', '', w.note||'']));
+    // Workout rows
+    Object.entries(state.workoutLog).forEach(([date, w]) => {
+      (w.exercises||[]).forEach(ex => {
+        (ex.sets||[]).forEach((s, si) => {
+          rows.push([date, 'workout', ex.muscle, ex.name, s.weight, s.reps, '', '', si+1, '', s.notes||'']);
+        });
+      });
+    });
+
+    const range = 'Sheet1!A1';
+    const values = [
+      ['Date','Type','Category','Name','Value1','Value2','Value3','Value4','Value5','Value6','Notes'],
+      ...rows
+    ];
+    const url = `https://sheets.googleapis.com/v4/spreadsheets/${id}/values/${range}?valueInputOption=RAW&key=${key}`;
+    const resp = await fetch(url.replace('?', '?'), {
+      method: 'PUT',
+      headers: { 'Content-Type': 'application/json' },
+      body: JSON.stringify({ values })
+    });
+
+    if (resp.ok) {
+      document.getElementById('sheets-status').textContent = '✓ Synced ' + rows.length + ' rows — ' + new Date().toLocaleTimeString();
+      showToast('Synced to Google Sheets!', 'success');
+    } else {
+      const err = await resp.json();
+      document.getElementById('sheets-status').textContent = '✗ Error: ' + (err.error?.message || 'Unknown error');
+      showToast('Sync failed','error');
+    }
+  } catch(e) {
+    document.getElementById('sheets-status').textContent = '✗ Network error';
+    showToast('Sync failed: ' + e.message, 'error');
+  }
+}
+
+// ── PROGRESS ───────────────────────────────────────────────────────────────
+let progExChartInst = null, progVolChartInst = null, progSessChartInst = null, progMuscleChartInst = null;
+let currentProgMetric = 'maxWeight';
+
+const CHART_COLORS = ['#3b9eff','#7dc4ff','#a0cfff','#c8e4ff','#1a6bbf','#5eb3ff','#0a4a8a','#d0eaff'];
+
+const METRIC_LABELS = {
+  maxWeight:   'Max weight used per session (lbs)',
+  totalVolume: 'Total volume per session (sets × reps × lbs)',
+  maxReps:     'Max reps in a single set per session',
+  sets:        'Number of sets per session'
+};
+
+function buildExerciseData() {
+  // Returns { exerciseName: { dates:[], maxWeight:[], totalVolume:[], maxReps:[], sets:[], muscle } }
+  const map = {};
+  Object.entries(state.workoutLog).sort((a,b)=>a[0].localeCompare(b[0])).forEach(([date, w]) => {
+    (w.exercises||[]).forEach(ex => {
+      const key = ex.name.trim().toLowerCase();
+      if (!map[key]) map[key] = { name: ex.name, muscle: ex.muscle, dates:[], maxWeight:[], totalVolume:[], maxReps:[], sets:[] };
+      const sets = ex.sets || [];
+      if (!sets.length) return;
+      map[key].dates.push(date.slice(5));   // MM-DD
+      map[key].maxWeight.push(Math.max(...sets.map(s=>s.weight||0)));
+      map[key].totalVolume.push(sets.reduce((sum,s)=>(sum+(s.weight||0)*(s.reps||0)),0));
+      map[key].maxReps.push(Math.max(...sets.map(s=>s.reps||0)));
+      map[key].sets.push(sets.length);
+    });
+  });
+  return map;
+}
+
+function refreshProgress() {
+  const exData = buildExerciseData();
+  const allWorkouts = Object.values(state.workoutLog);
+  const totalSessions = allWorkouts.length;
+  const totalSets = allWorkouts.reduce((s,w)=>(s+(w.exercises||[]).reduce((es,e)=>(es+(e.sets||[]).length),0)),0);
+  const totalVol = allWorkouts.reduce((s,w)=>(s+(w.exercises||[]).reduce((es,e)=>(es+(e.sets||[]).reduce((ss,set)=>(ss+(set.weight||0)*(set.reps||0)),0)),0)),0);
+  const exerciseCount = Object.keys(exData).length;
+
+  document.getElementById('prog-total-sessions').textContent = totalSessions;
+  document.getElementById('prog-total-sets').textContent = totalSets;
+  document.getElementById('prog-total-vol').textContent = totalVol >= 1000 ? (totalVol/1000).toFixed(1)+'k' : Math.round(totalVol);
+  document.getElementById('prog-exercises-count').textContent = exerciseCount;
+
+  // Populate exercise dropdown
+  const sel = document.getElementById('prog-exercise-select');
+  const prevVal = sel.value;
+  sel.innerHTML = '<option value="">— Select an exercise —</option>';
+  Object.entries(exData).sort((a,b)=>a[1].name.localeCompare(b[1].name)).forEach(([key, ex]) => {
+    const opt = document.createElement('option');
+    opt.value = key;
+    opt.textContent = ex.name + ' (' + ex.muscle + ')';
+    sel.appendChild(opt);
+  });
+  if (prevVal) sel.value = prevVal;
+
+  renderExerciseChart();
+  renderVolumeChart(allWorkouts);
+  renderSessionsChart(allWorkouts);
+  renderMuscleChart(allWorkouts);
+  renderPRList(exData);
+}
+
+function setProgMetric(metric, el) {
+  currentProgMetric = metric;
+  document.querySelectorAll('#prog-metric-chips .chip').forEach(c=>c.classList.remove('active'));
+  el.classList.add('active');
+  renderExerciseChart();
+}
+
+function renderExerciseChart() {
+  const sel = document.getElementById('prog-exercise-select');
+  const key = sel.value;
+  const section = document.getElementById('prog-exercise-section');
+  const noData = document.getElementById('prog-no-data');
+
+  if (!key) { section.style.display='none'; noData.style.display='none'; return; }
+
+  const exData = buildExerciseData();
+  const ex = exData[key];
+  if (!ex || !ex.dates.length) { section.style.display='none'; noData.style.display='block'; return; }
+
+  section.style.display = 'block';
+  noData.style.display = 'none';
+
+  // PR badges
+  const maxW = Math.max(...ex.maxWeight);
+  const maxVol = Math.max(...ex.totalVolume);
+  const maxR = Math.max(...ex.maxReps);
+  document.getElementById('prog-pr-row').innerHTML = `
+    <div style="background:rgba(232,255,71,0.1);border:1px solid rgba(232,255,71,0.3);border-radius:10px;padding:8px 12px;text-align:center;flex:1">
+      <div style="font-family:'Bebas Neue',sans-serif;font-size:22px;color:var(--accent);line-height:1">${maxW}</div>
+      <div style="font-size:9px;color:var(--muted);text-transform:uppercase;letter-spacing:.5px;margin-top:2px">PR (lbs)</div>
+    </div>
+    <div style="background:rgba(71,180,255,0.1);border:1px solid rgba(71,180,255,0.3);border-radius:10px;padding:8px 12px;text-align:center;flex:1">
+      <div style="font-family:'Bebas Neue',sans-serif;font-size:22px;color:var(--blue);line-height:1">${maxR}</div>
+      <div style="font-size:9px;color:var(--muted);text-transform:uppercase;letter-spacing:.5px;margin-top:2px">PR (reps)</div>
+    </div>
+    <div style="background:rgba(71,255,138,0.1);border:1px solid rgba(71,255,138,0.3);border-radius:10px;padding:8px 12px;text-align:center;flex:1">
+      <div style="font-family:'Bebas Neue',sans-serif;font-size:22px;color:var(--accent);line-height:1">${ex.dates.length}</div>
+      <div style="font-size:9px;color:var(--muted);text-transform:uppercase;letter-spacing:.5px;margin-top:2px">Sessions</div>
+    </div>`;
+
+  document.getElementById('prog-chart-label').textContent = METRIC_LABELS[currentProgMetric];
+
+  const dataset = ex[currentProgMetric];
+  const colorMap = { maxWeight:'#3b9eff', totalVolume:'#7dc4ff', maxReps:'#a0cfff', sets:'#c8e4ff' };
+  const color = colorMap[currentProgMetric];
+
+  if (progExChartInst) progExChartInst.destroy();
+  const ctx = document.getElementById('prog-exercise-chart').getContext('2d');
+  progExChartInst = new Chart(ctx, {
+    type: 'line',
+    data: {
+      labels: ex.dates,
+      datasets: [{
+        label: currentProgMetric,
+        data: dataset,
+        borderColor: color,
+        backgroundColor: color + '18',
+        pointBackgroundColor: color,
+        pointRadius: 4,
+        pointHoverRadius: 6,
+        tension: 0.35,
+        fill: true,
+        borderWidth: 2
+      }]
+    },
+    options: {
+      responsive: true, maintainAspectRatio: false,
+      plugins: { legend:{display:false}, tooltip:{
+        backgroundColor:'#1e1e1e', borderColor:'#2a2a2a', borderWidth:1,
+        titleColor:'#888', bodyColor:'#f0f0f0',
+        callbacks:{ label: ctx => currentProgMetric==='totalVolume'
+          ? ' ' + Math.round(ctx.parsed.y).toLocaleString() + ' lbs·reps'
+          : ' ' + ctx.parsed.y + (currentProgMetric==='maxWeight'||currentProgMetric==='totalVolume'?' lbs':currentProgMetric==='maxReps'?' reps':' sets') }
+      }},
+      scales: {
+        x: { ticks:{color:'#888',font:{size:10}}, grid:{color:'#2a2a2a'} },
+        y: { ticks:{color:'#888',font:{size:10}}, grid:{color:'#2a2a2a'}, beginAtZero:false }
+      }
+    }
+  });
+}
+
+function renderVolumeChart(allWorkouts) {
+  // Group by ISO week
+  const weekMap = {};
+  allWorkouts.forEach(w => {
+    const d = new Date(w.date);
+    const week = getWeekLabel(d);
+    const vol = (w.exercises||[]).reduce((s,e)=>(s+(e.sets||[]).reduce((es,set)=>(es+(set.weight||0)*(set.reps||0)),0)),0);
+    weekMap[week] = (weekMap[week]||0) + vol;
+  });
+  const weeks = Object.keys(weekMap).sort().slice(-10);
+  const vals = weeks.map(w=>Math.round(weekMap[w]));
+
+  if (progVolChartInst) progVolChartInst.destroy();
+  const ctx = document.getElementById('prog-volume-chart').getContext('2d');
+  progVolChartInst = new Chart(ctx, {
+    type: 'bar',
+    data: {
+      labels: weeks,
+      datasets: [{ data: vals, backgroundColor: '#3b9eff22', borderColor: '#3b9eff', borderWidth: 1.5, borderRadius: 4 }]
+    },
+    options: {
+      responsive:true, maintainAspectRatio:false,
+      plugins:{legend:{display:false},tooltip:{backgroundColor:'#1e1e1e',borderColor:'#2a2a2a',borderWidth:1,titleColor:'#888',bodyColor:'#f0f0f0'}},
+      scales:{
+        x:{ticks:{color:'#888',font:{size:9}},grid:{display:false}},
+        y:{ticks:{color:'#888',font:{size:10}},grid:{color:'#2a2a2a'},beginAtZero:true}
+      }
+    }
+  });
+}
+
+function renderSessionsChart(allWorkouts) {
+  const weekMap = {};
+  allWorkouts.forEach(w => { const wk = getWeekLabel(new Date(w.date)); weekMap[wk]=(weekMap[wk]||0)+1; });
+  const weeks = Object.keys(weekMap).sort().slice(-10);
+  const vals = weeks.map(w=>weekMap[w]);
+
+  if (progSessChartInst) progSessChartInst.destroy();
+  const ctx = document.getElementById('prog-sessions-chart').getContext('2d');
+  progSessChartInst = new Chart(ctx, {
+    type: 'bar',
+    data: {
+      labels: weeks,
+      datasets: [{ data: vals, backgroundColor: '#7dc4ff22', borderColor: '#7dc4ff', borderWidth: 1.5, borderRadius: 4 }]
+    },
+    options: {
+      responsive:true, maintainAspectRatio:false,
+      plugins:{legend:{display:false},tooltip:{backgroundColor:'#1e1e1e',borderColor:'#2a2a2a',borderWidth:1,titleColor:'#888',bodyColor:'#f0f0f0'}},
+      scales:{
+        x:{ticks:{color:'#888',font:{size:9}},grid:{display:false}},
+        y:{ticks:{color:'#888',font:{size:10},stepSize:1},grid:{color:'#2a2a2a'},beginAtZero:true}
+      }
+    }
+  });
+}
+
+function renderMuscleChart(allWorkouts) {
+  const muscleVol = {};
+  allWorkouts.forEach(w=>{
+    (w.exercises||[]).forEach(ex=>{
+      const m = ex.muscle||'Other';
+      const vol = (ex.sets||[]).reduce((s,set)=>(s+(set.weight||0)*(set.reps||0)),0);
+      muscleVol[m]=(muscleVol[m]||0)+vol;
+    });
+  });
+  const entries = Object.entries(muscleVol).sort((a,b)=>b[1]-a[1]);
+  const labels = entries.map(e=>e[0]);
+  const vals = entries.map(e=>Math.round(e[1]));
+
+  if (progMuscleChartInst) progMuscleChartInst.destroy();
+  const ctx = document.getElementById('prog-muscle-chart').getContext('2d');
+  progMuscleChartInst = new Chart(ctx, {
+    type: 'bar',
+    data: {
+      labels,
+      datasets: [{ data: vals, backgroundColor: CHART_COLORS.slice(0,labels.length).map(c=>c+'33'), borderColor: CHART_COLORS.slice(0,labels.length), borderWidth: 1.5, borderRadius: 4 }]
+    },
+    options: {
+      indexAxis: 'y',
+      responsive:true, maintainAspectRatio:false,
+      plugins:{legend:{display:false},tooltip:{backgroundColor:'#1e1e1e',borderColor:'#2a2a2a',borderWidth:1,titleColor:'#888',bodyColor:'#f0f0f0'}},
+      scales:{
+        x:{ticks:{color:'#888',font:{size:9}},grid:{color:'#2a2a2a'},beginAtZero:true},
+        y:{ticks:{color:'#f0f0f0',font:{size:11}},grid:{display:false}}
+      }
+    }
+  });
+}
+
+function renderPRList(exData) {
+  const listEl = document.getElementById('prog-pr-list');
+  const entries = Object.values(exData).filter(e=>e.maxWeight.length>0)
+    .sort((a,b)=>Math.max(...b.maxWeight)-Math.max(...a.maxWeight));
+  if (!entries.length) {
+    listEl.innerHTML='<div style="color:var(--muted);font-size:14px;padding:8px 0">Log workouts to see your PRs here.</div>';
+    return;
+  }
+  listEl.innerHTML = entries.map(ex => {
+    const prW = Math.max(...ex.maxWeight);
+    const prR = Math.max(...ex.maxReps);
+    const sessions = ex.dates.length;
+    const trend = ex.maxWeight.length >= 2
+      ? ex.maxWeight[ex.maxWeight.length-1] > ex.maxWeight[0]
+        ? '<span style="color:var(--green);font-size:12px">↑</span>'
+        : ex.maxWeight[ex.maxWeight.length-1] < ex.maxWeight[0]
+          ? '<span style="color:var(--accent2);font-size:12px">↓</span>'
+          : '<span style="color:var(--muted);font-size:12px">→</span>'
+      : '';
+    return `<div style="display:flex;justify-content:space-between;align-items:center;padding:10px 0;border-bottom:1px solid var(--border)">
+      <div>
+        <div style="font-size:14px;font-weight:500">${ex.name} ${trend}</div>
+        <div style="font-size:11px;color:var(--muted)">${ex.muscle} · ${sessions} session${sessions!==1?'s':''}</div>
+      </div>
+      <div style="text-align:right">
+        <div style="font-family:'Bebas Neue',sans-serif;font-size:22px;color:var(--accent);line-height:1">${prW} lbs</div>
+        <div style="font-size:10px;color:var(--muted)">${prR} reps max</div>
+      </div>
+    </div>`;
+  }).join('');
+}
+
+function getWeekLabel(d) {
+  const day = d.getDay();
+  const diff = d.getDate() - day + (day===0?-6:1);
+  const mon = new Date(d.setDate(diff));
+  return mon.toISOString().slice(5,10);
+}
+
+// ── ADD FOOD MODAL — RECIPE BOOK SECTION ───────────────────────────────────
+let rbFilter = 'all';
+let rbOpen = false;
+
+function toggleRecipeBookSection() {
+  rbOpen = !rbOpen;
+  const section = document.getElementById('rb-section');
+  const btn = document.getElementById('rb-toggle-btn');
+  section.style.display = rbOpen ? 'block' : 'none';
+  btn.textContent = rbOpen ? 'Hide ▴' : 'Show ▾';
+  if (rbOpen) {
+    document.getElementById('rb-search').value = '';
+    rbFilter = 'all';
+    document.querySelectorAll('#rb-type-chips .chip').forEach((c,i) => c.classList.toggle('active', i===0));
+    renderRBResults('');
+  }
+}
+
+function setRBFilter(filter, el) {
+  rbFilter = filter;
+  document.querySelectorAll('#rb-type-chips .chip').forEach(c => c.classList.remove('active'));
+  el.classList.add('active');
+  renderRBResults(document.getElementById('rb-search').value);
+}
+
+function filterRBSearch(q) {
+  renderRBResults(q);
+}
+
+function renderRBResults(q) {
+  const ql = q.toLowerCase();
+  const container = document.getElementById('rb-results');
+
+  const savedFoods = rbFilter !== 'recipe'
+    ? (state.savedFoods || []).filter(f => !ql || f.name.toLowerCase().includes(ql))
+    : [];
+  const recipes = rbFilter !== 'food'
+    ? (state.recipes || []).filter(r => !ql || r.name.toLowerCase().includes(ql))
+    : [];
+
+  if (!savedFoods.length && !recipes.length) {
+    const msg = (state.savedFoods||[]).length === 0 && (state.recipes||[]).length === 0
+      ? 'No saved foods or recipes yet.<br><small style="color:var(--muted)">Log foods and tap 🔖, or build recipes in the Recipe Book.</small>'
+      : 'No matches found.';
+    container.innerHTML = `<div style="color:var(--muted);font-size:13px;padding:10px 0;text-align:center">${msg}</div>`;
+    return;
+  }
+
+  let html = '';
+
+  if (recipes.length) {
+    html += `<div style="font-size:10px;color:var(--muted);text-transform:uppercase;letter-spacing:1px;padding:6px 0 4px">Recipes</div>`;
+    html += recipes.map(r => {
+      const t = calcRecipeTotals(r);
+      return `<div style="display:flex;align-items:center;gap:10px;padding:10px 0;border-bottom:1px solid var(--border)">
+        <div style="flex:1;min-width:0">
+          <div style="font-size:14px;font-weight:500;white-space:nowrap;overflow:hidden;text-overflow:ellipsis">📖 ${r.name}</div>
+          <div style="font-size:11px;color:var(--muted);margin-top:2px">${Math.round(t.cal)} kcal · P:${t.protein.toFixed(0)}g C:${t.carbs.toFixed(0)}g F:${t.fat.toFixed(0)}g · ${(r.ingredients||[]).length} ingredients</div>
+        </div>
+        <button class="btn btn-primary btn-sm" style="flex-shrink:0" onclick="logRecipeFromAddFood(${r.id})">+ Log</button>
+      </div>`;
+    }).join('');
+  }
+
+  if (savedFoods.length) {
+    html += `<div style="font-size:10px;color:var(--muted);text-transform:uppercase;letter-spacing:1px;padding:6px 0 4px">Saved Foods</div>`;
+    html += savedFoods.map(f => `
+      <div style="display:flex;align-items:center;gap:10px;padding:10px 0;border-bottom:1px solid var(--border)">
+        <div style="flex:1;min-width:0">
+          <div style="font-size:14px;font-weight:500;white-space:nowrap;overflow:hidden;text-overflow:ellipsis">${f.name}</div>
+          <div style="font-size:11px;color:var(--muted);margin-top:2px">${Math.round(f.cal)} kcal · P:${(f.protein||0).toFixed(1)}g C:${(f.carbs||0).toFixed(1)}g F:${(f.fat||0).toFixed(1)}g</div>
+        </div>
+        <div style="display:flex;gap:6px;flex-shrink:0">
+          <button class="btn btn-secondary btn-sm" onclick="fillFormFromSaved(${f.id})">Fill Form</button>
+          <button class="btn btn-primary btn-sm" onclick="logSavedFoodFromAddFood(${f.id})">+ Log</button>
+        </div>
+      </div>`).join('');
+  }
+
+  container.innerHTML = html;
+}
+
+function logRecipeFromAddFood(recipeId) {
+  const r = (state.recipes || []).find(r => r.id === recipeId);
+  if (!r) return;
+  const t = calcRecipeTotals(r);
+  const meal = getMealFromTime();
+  const d = today();
+  if (!state.foodLog[d]) state.foodLog[d] = [];
+  state.foodLog[d].push({
+    id: Date.now(), name: r.name + ' (recipe)', meal,
+    cal: t.cal, protein: t.protein, carbs: t.carbs, fat: t.fat,
+    sodium: 0, fiber: 0, sugar: 0, calcium: 0, iron: 0, potassium: 0,
+    vitc: 0, vitd: 0, chol: 0, satfat: 0,
+    time: new Date().toLocaleTimeString('en-US', {hour:'2-digit', minute:'2-digit'})
+  });
+  saveState();
+  closeModal('add-food-modal');
+  buildDayStrip();
+  refreshNutrition();
+  refreshDashboard();
+  showToast('📖 ' + r.name + ' logged!', 'success');
+}
+
+function logSavedFoodFromAddFood(foodId) {
+  const food = (state.savedFoods || []).find(f => f.id === foodId);
+  if (!food) return;
+  const meal = getMealFromTime();
+  const d = today();
+  if (!state.foodLog[d]) state.foodLog[d] = [];
+  state.foodLog[d].push({
+    id: Date.now(), name: food.name, meal,
+    cal: food.cal, protein: food.protein, carbs: food.carbs, fat: food.fat,
+    sodium: food.sodium||0, fiber: food.fiber||0, sugar: food.sugar||0,
+    calcium: 0, iron: 0, potassium: 0, vitc: 0, vitd: 0, chol: 0, satfat: 0,
+    time: new Date().toLocaleTimeString('en-US', {hour:'2-digit', minute:'2-digit'})
+  });
+  saveState();
+  closeModal('add-food-modal');
+  buildDayStrip();
+  refreshNutrition();
+  refreshDashboard();
+  showToast(food.name + ' logged!', 'success');
+}
+
+function fillFormFromSaved(foodId) {
+  const food = (state.savedFoods || []).find(f => f.id === foodId);
+  if (!food) return;
+  document.getElementById('manual-food-name').value = food.name;
+  document.getElementById('manual-cal').value = food.cal || '';
+  document.getElementById('manual-protein').value = food.protein || '';
+  document.getElementById('manual-carbs').value = food.carbs || '';
+  document.getElementById('manual-fat').value = food.fat || '';
+  document.getElementById('manual-sodium').value = food.sodium || '';
+  document.getElementById('manual-fiber').value = food.fiber || '';
+  document.getElementById('manual-sugar').value = food.sugar || '';
+  // Close the recipe book section so user sees the form
+  rbOpen = true; toggleRecipeBookSection();
+  showToast('Form filled — adjust serving size if needed', 'success');
+}
+
+// ── RECIPE BOOK ────────────────────────────────────────────────────────────
+let recipeFilter = 'all';
+let recipeSearchQ = '';
+let currentRecipeIngredients = []; // [{savedFoodId, name, servings, cal, protein, carbs, fat}]
+let viewingRecipeId = null;
+
+function saveFoodFromLog(foodId) {
+  const d = selectedNutDate;
+  const food = (state.foodLog[d] || []).find(f => f.id === foodId);
+  if (!food) return;
+  if (!state.savedFoods) state.savedFoods = [];
+  if (state.savedFoods.find(f => f.name.toLowerCase() === food.name.toLowerCase())) {
+    showToast('Already in Recipe Book', 'error'); return;
+  }
+  state.savedFoods.push({
+    id: Date.now(), name: food.name,
+    cal: food.cal, protein: food.protein, carbs: food.carbs, fat: food.fat,
+    sodium: food.sodium||0, fiber: food.fiber||0, sugar: food.sugar||0,
+    savedAt: today()
+  });
+  saveState();
+  showToast('Saved to Recipe Book! 📖', 'success');
+}
+
+function setRecipeFilter(filter, el) {
+  recipeFilter = filter;
+  document.querySelectorAll('#recipe-filter-chips .chip').forEach(c => c.classList.remove('active'));
+  el.classList.add('active');
+  renderRecipeBook();
+}
+
+function filterRecipes(q) {
+  recipeSearchQ = q.toLowerCase();
+  renderRecipeBook();
+}
+
+function refreshRecipes() {
+  recipeSearchQ = '';
+  recipeFilter = 'all';
+  document.getElementById('recipe-search').value = '';
+  document.querySelectorAll('#recipe-filter-chips .chip').forEach((c,i) => c.classList.toggle('active', i===0));
+  renderRecipeBook();
+}
+
+function renderRecipeBook() {
+  const savedFoods = (state.savedFoods || []).filter(f =>
+    recipeFilter === 'recipe' ? false :
+    recipeFilter === 'saved' ? true :
+    true
+  ).filter(f => !recipeSearchQ || f.name.toLowerCase().includes(recipeSearchQ));
+
+  const recipes = (state.recipes || []).filter(r =>
+    recipeFilter === 'saved' ? false :
+    recipeFilter === 'recipe' ? true :
+    true
+  ).filter(r => !recipeSearchQ || r.name.toLowerCase().includes(recipeSearchQ));
+
+  // Saved foods section
+  const sfSection = document.getElementById('saved-foods-section');
+  const sfList = document.getElementById('saved-foods-list');
+  const sfCount = document.getElementById('saved-foods-count');
+  sfSection.style.display = recipeFilter === 'recipe' ? 'none' : 'block';
+
+  sfCount.textContent = (state.savedFoods||[]).length + ' items';
+  if (!savedFoods.length) {
+    sfList.innerHTML = recipeSearchQ
+      ? '<div style="color:var(--muted);font-size:14px;padding:8px 0">No matches.</div>'
+      : '<div style="color:var(--muted);font-size:14px;padding:8px 0">No saved foods yet. Log a food and tap 🔖 to save it here.</div>';
+  } else {
+    sfList.innerHTML = savedFoods.map(f => `
+      <div style="display:flex;align-items:center;justify-content:space-between;padding:10px 0;border-bottom:1px solid var(--border)">
+        <div style="flex:1;min-width:0">
+          <div style="font-size:14px;font-weight:500;white-space:nowrap;overflow:hidden;text-overflow:ellipsis">${f.name}</div>
+          <div style="font-size:11px;color:var(--muted);margin-top:2px">${Math.round(f.cal)} kcal · P:${(f.protein||0).toFixed(1)}g C:${(f.carbs||0).toFixed(1)}g F:${(f.fat||0).toFixed(1)}g</div>
+        </div>
+        <div style="display:flex;gap:6px;margin-left:10px;flex-shrink:0">
+          <button class="btn btn-secondary btn-sm" onclick="logSavedFoodToday(${f.id})">+ Log</button>
+          <button class="del-btn" onclick="deleteSavedFood(${f.id})" style="font-size:14px">✕</button>
+        </div>
+      </div>`).join('');
+  }
+
+  // Recipes section
+  const recSection = document.getElementById('recipes-section');
+  const recList = document.getElementById('recipe-list');
+  recSection.style.display = recipeFilter === 'saved' ? 'none' : 'block';
+
+  if (!recipes.length) {
+    recList.innerHTML = recipeSearchQ
+      ? '<div style="color:var(--muted);font-size:14px;padding:8px 0">No matches.</div>'
+      : '<div style="color:var(--muted);font-size:14px;padding:8px 0">No recipes yet. Tap + New Recipe to build one.</div>';
+  } else {
+    recList.innerHTML = recipes.map(r => {
+      const totals = calcRecipeTotals(r);
+      const ingCount = (r.ingredients||[]).length;
+      return `<div class="card" style="cursor:pointer;margin-bottom:10px" onclick="openRecipeDetail(${r.id})">
+        <div style="display:flex;align-items:flex-start;justify-content:space-between;gap:8px">
+          <div style="flex:1;min-width:0">
+            <div style="font-size:16px;font-weight:500;margin-bottom:3px">${r.name}</div>
+            <div style="font-size:11px;color:var(--muted);margin-bottom:10px">${r.category} · ${ingCount} ingredient${ingCount!==1?'s':''}</div>
+            <div style="display:flex;gap:12px">
+              <div style="text-align:center">
+                <div style="font-family:'Bebas Neue',sans-serif;font-size:20px;color:var(--accent);line-height:1">${Math.round(totals.cal)}</div>
+                <div style="font-size:9px;color:var(--muted)">kcal</div>
+              </div>
+              <div style="text-align:center">
+                <div style="font-family:'Bebas Neue',sans-serif;font-size:20px;color:var(--blue);line-height:1">${totals.protein.toFixed(0)}g</div>
+                <div style="font-size:9px;color:var(--muted)">protein</div>
+              </div>
+              <div style="text-align:center">
+                <div style="font-family:'Bebas Neue',sans-serif;font-size:20px;color:var(--orange);line-height:1">${totals.carbs.toFixed(0)}g</div>
+                <div style="font-size:9px;color:var(--muted)">carbs</div>
+              </div>
+              <div style="text-align:center">
+                <div style="font-family:'Bebas Neue',sans-serif;font-size:20px;color:var(--text);line-height:1">${totals.fat.toFixed(0)}g</div>
+                <div style="font-size:9px;color:var(--muted)">fat</div>
+              </div>
+            </div>
+          </div>
+          <div style="font-size:20px;flex-shrink:0;margin-top:2px">📖</div>
+        </div>
+      </div>`;
+    }).join('');
+  }
+}
+
+function calcRecipeTotals(recipe) {
+  return (recipe.ingredients||[]).reduce((acc, ing) => {
+    const s = ing.servings || 1;
+    acc.cal += (ing.cal||0)*s;
+    acc.protein += (ing.protein||0)*s;
+    acc.carbs += (ing.carbs||0)*s;
+    acc.fat += (ing.fat||0)*s;
+    return acc;
+  }, { cal:0, protein:0, carbs:0, fat:0 });
+}
+
+function logSavedFoodToday(foodId) {
+  const food = (state.savedFoods||[]).find(f => f.id === foodId);
+  if (!food) return;
+  const d = today();
+  if (!state.foodLog[d]) state.foodLog[d] = [];
+  state.foodLog[d].push({
+    id: Date.now(), name: food.name, meal: getMealFromTime(),
+    cal: food.cal, protein: food.protein, carbs: food.carbs, fat: food.fat,
+    sodium: food.sodium||0, fiber: food.fiber||0, sugar: food.sugar||0,
+    calcium:0, iron:0, potassium:0, vitc:0, vitd:0, chol:0, satfat:0,
+    time: new Date().toLocaleTimeString('en-US',{hour:'2-digit',minute:'2-digit'})
+  });
+  saveState(); refreshDashboard();
+  showToast(food.name + ' logged! 🍽️', 'success');
+}
+
+function deleteSavedFood(id) {
+  state.savedFoods = (state.savedFoods||[]).filter(f => f.id !== id);
+  saveState(); renderRecipeBook();
+  showToast('Removed from saved foods');
+}
+
+// ── NEW RECIPE MODAL ────────────────────────────────────────────────────────
+function openNewRecipeModal(editId = null) {
+  currentRecipeIngredients = [];
+  document.getElementById('recipe-name-input').value = '';
+  document.getElementById('recipe-notes-input').value = '';
+  document.getElementById('recipe-edit-id').value = editId || '';
+  document.getElementById('recipe-modal-title').textContent = editId ? 'Edit Recipe' : 'New Recipe';
+
+  if (editId) {
+    const r = (state.recipes||[]).find(r => r.id === editId);
+    if (r) {
+      document.getElementById('recipe-name-input').value = r.name;
+      document.getElementById('recipe-category-input').value = r.category;
+      document.getElementById('recipe-notes-input').value = r.notes||'';
+      currentRecipeIngredients = JSON.parse(JSON.stringify(r.ingredients||[]));
+    }
+  }
+
+  renderRecipeIngredients();
+  openModal('new-recipe-modal');
+}
+
+function renderRecipeIngredients() {
+  const list = document.getElementById('recipe-ingredients-list');
+  const empty = document.getElementById('recipe-ing-empty');
+  const totalsBar = document.getElementById('recipe-totals-bar');
+
+  if (!currentRecipeIngredients.length) {
+    list.innerHTML = '<div style="color:var(--muted);font-size:13px;padding:6px 0" id="recipe-ing-empty">No ingredients yet.</div>';
+    totalsBar.style.display = 'none';
+    return;
+  }
+  totalsBar.style.display = 'block';
+  list.innerHTML = currentRecipeIngredients.map((ing, i) => `
+    <div style="display:flex;align-items:center;gap:8px;padding:8px 0;border-bottom:1px solid var(--border)">
+      <div style="flex:1;min-width:0">
+        <div style="font-size:14px;font-weight:500;white-space:nowrap;overflow:hidden;text-overflow:ellipsis">${ing.name}</div>
+        <div style="font-size:11px;color:var(--muted)">${Math.round(ing.cal * ing.servings)} kcal · ×${ing.servings} serving${ing.servings!==1?'s':''}</div>
+      </div>
+      <div style="display:flex;align-items:center;gap:6px;flex-shrink:0">
+        <button onclick="changeServing(${i},-1)" style="background:var(--surface2);border:1px solid var(--border);color:var(--text);width:28px;height:28px;border-radius:8px;font-size:16px;cursor:pointer;display:flex;align-items:center;justify-content:center">−</button>
+        <span style="font-size:14px;min-width:16px;text-align:center">${ing.servings}</span>
+        <button onclick="changeServing(${i},1)" style="background:var(--surface2);border:1px solid var(--border);color:var(--accent);width:28px;height:28px;border-radius:8px;font-size:16px;cursor:pointer;display:flex;align-items:center;justify-content:center">+</button>
+        <button class="del-btn" onclick="removeIngredient(${i})" style="font-size:14px">✕</button>
+      </div>
+    </div>`).join('');
+
+  // Update totals
+  const t = currentRecipeIngredients.reduce((acc,ing)=>{
+    const s=ing.servings||1;
+    acc.cal+=(ing.cal||0)*s; acc.protein+=(ing.protein||0)*s;
+    acc.carbs+=(ing.carbs||0)*s; acc.fat+=(ing.fat||0)*s; return acc;
+  },{cal:0,protein:0,carbs:0,fat:0});
+  document.getElementById('rtotal-cal').textContent = Math.round(t.cal);
+  document.getElementById('rtotal-protein').textContent = t.protein.toFixed(0)+'g';
+  document.getElementById('rtotal-carbs').textContent = t.carbs.toFixed(0)+'g';
+  document.getElementById('rtotal-fat').textContent = t.fat.toFixed(0)+'g';
+}
+
+function changeServing(idx, delta) {
+  currentRecipeIngredients[idx].servings = Math.max(0.5, (currentRecipeIngredients[idx].servings||1) + delta);
+  renderRecipeIngredients();
+}
+
+function removeIngredient(idx) {
+  currentRecipeIngredients.splice(idx, 1);
+  renderRecipeIngredients();
+}
+
+function openPickIngredient() {
+  document.getElementById('ing-search').value = '';
+  filterIngredients('');
+  openModal('pick-ingredient-modal');
+}
+
+function filterIngredients(q) {
+  const ql = q.toLowerCase();
+  const saved = (state.savedFoods||[]).filter(f => !q || f.name.toLowerCase().includes(ql));
+  const res = document.getElementById('ing-results');
+  if (!saved.length) {
+    res.innerHTML = '<div style="color:var(--muted);font-size:14px;padding:12px 0;text-align:center">No saved foods found.<br><span style="font-size:12px">Log foods and tap 🔖 to save them first.</span></div>';
+    return;
+  }
+  res.innerHTML = saved.map(f => `
+    <div onclick="addIngredient(${f.id})" style="padding:12px 0;border-bottom:1px solid var(--border);cursor:pointer">
+      <div style="font-size:14px;font-weight:500">${f.name}</div>
+      <div style="font-size:11px;color:var(--muted);margin-top:2px">${Math.round(f.cal)} kcal · P:${(f.protein||0).toFixed(1)}g C:${(f.carbs||0).toFixed(1)}g F:${(f.fat||0).toFixed(1)}g</div>
+    </div>`).join('');
+}
+
+function addIngredient(savedFoodId) {
+  const food = (state.savedFoods||[]).find(f => f.id === savedFoodId);
+  if (!food) return;
+  if (currentRecipeIngredients.find(i => i.savedFoodId === savedFoodId)) {
+    showToast('Already added','error'); return;
+  }
+  currentRecipeIngredients.push({
+    savedFoodId, name: food.name, servings: 1,
+    cal: food.cal, protein: food.protein, carbs: food.carbs, fat: food.fat
+  });
+  closeModal('pick-ingredient-modal');
+  renderRecipeIngredients();
+  showToast(food.name + ' added!', 'success');
+}
+
+function saveRecipe() {
+  const name = document.getElementById('recipe-name-input').value.trim();
+  if (!name) { showToast('Enter a recipe name','error'); return; }
+  if (!currentRecipeIngredients.length) { showToast('Add at least one ingredient','error'); return; }
+
+  const editId = parseInt(document.getElementById('recipe-edit-id').value) || null;
+  const recipe = {
+    id: editId || Date.now(),
+    name,
+    category: document.getElementById('recipe-category-input').value,
+    notes: document.getElementById('recipe-notes-input').value.trim(),
+    ingredients: JSON.parse(JSON.stringify(currentRecipeIngredients)),
+    createdAt: editId ? ((state.recipes||[]).find(r=>r.id===editId)||{}).createdAt || today() : today()
+  };
+
+  if (!state.recipes) state.recipes = [];
+  if (editId) {
+    const idx = state.recipes.findIndex(r => r.id === editId);
+    if (idx > -1) state.recipes[idx] = recipe; else state.recipes.push(recipe);
+  } else {
+    state.recipes.push(recipe);
+  }
+
+  saveState();
+  closeModal('new-recipe-modal');
+  refreshRecipes();
+  showToast((editId ? 'Recipe updated!' : 'Recipe saved! 📖'), 'success');
+}
+
+// ── RECIPE DETAIL ───────────────────────────────────────────────────────────
+function openRecipeDetail(id) {
+  const r = (state.recipes||[]).find(r => r.id === id);
+  if (!r) return;
+  viewingRecipeId = id;
+
+  document.getElementById('detail-recipe-name').textContent = r.name;
+  document.getElementById('detail-recipe-meta').textContent = r.category + ' · ' + (r.ingredients||[]).length + ' ingredient(s) · Added ' + r.createdAt;
+
+  const t = calcRecipeTotals(r);
+  document.getElementById('detail-cal').textContent = Math.round(t.cal);
+  document.getElementById('detail-protein').textContent = t.protein.toFixed(0)+'g';
+  document.getElementById('detail-carbs').textContent = t.carbs.toFixed(0)+'g';
+  document.getElementById('detail-fat').textContent = t.fat.toFixed(0)+'g';
+
+  document.getElementById('detail-ingredients').innerHTML = (r.ingredients||[]).map(ing => {
+    const s = ing.servings||1;
+    return `<div style="display:flex;justify-content:space-between;align-items:center;padding:8px 0;border-bottom:1px solid var(--border)">
+      <div>
+        <div style="font-size:14px;font-weight:500">${ing.name}</div>
+        <div style="font-size:11px;color:var(--muted)">×${s} serving${s!==1?'s':''}</div>
+      </div>
+      <div style="text-align:right;font-size:13px;color:var(--muted)">${Math.round((ing.cal||0)*s)} kcal</div>
+    </div>`;
+  }).join('');
+
+  const notesWrap = document.getElementById('detail-notes-wrap');
+  if (r.notes) {
+    notesWrap.style.display = 'block';
+    document.getElementById('detail-notes').textContent = r.notes;
+  } else {
+    notesWrap.style.display = 'none';
+  }
+
+  openModal('recipe-detail-modal');
+}
+
+function editRecipeFromDetail() {
+  closeModal('recipe-detail-modal');
+  setTimeout(() => openNewRecipeModal(viewingRecipeId), 200);
+}
+
+function deleteRecipeFromDetail() {
+  if (!confirm('Delete this recipe?')) return;
+  state.recipes = (state.recipes||[]).filter(r => r.id !== viewingRecipeId);
+  saveState();
+  closeModal('recipe-detail-modal');
+  refreshRecipes();
+  showToast('Recipe deleted');
+}
+
+function logRecipeToday() {
+  const r = (state.recipes||[]).find(r => r.id === viewingRecipeId);
+  if (!r) return;
+  const t = calcRecipeTotals(r);
+  const d = today();
+  if (!state.foodLog[d]) state.foodLog[d] = [];
+  state.foodLog[d].push({
+    id: Date.now(), name: r.name + ' (recipe)', meal: getMealFromTime(),
+    cal: t.cal, protein: t.protein, carbs: t.carbs, fat: t.fat,
+    sodium:0, fiber:0, sugar:0, calcium:0, iron:0, potassium:0, vitc:0, vitd:0, chol:0, satfat:0,
+    time: new Date().toLocaleTimeString('en-US',{hour:'2-digit',minute:'2-digit'})
+  });
+  saveState();
+  closeModal('recipe-detail-modal');
+  refreshDashboard();
+  showToast(r.name + ' logged to today! 🍽️', 'success');
+}
+
+// ── INIT ───────────────────────────────────────────────────────────────────
+refreshDashboard();
+</script>
+</body>
+</html>
